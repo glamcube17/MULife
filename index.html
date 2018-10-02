@@ -1,0 +1,188 @@
+<!DOCTYPE HTML>
+<html>
+<head> 
+	<meta charset='UTF-8'/>
+    <html lang='en'>
+	<title>Canvas Test</title>
+	
+    <link rel='stylesheet' href='css/jquery-ui.css'>
+	<link rel='stylesheet' 
+			href='css/jquery-ui-1.12.icon-font.css' />    
+	<link rel='stylesheet' href='css/uibase.css'>
+			
+	<!--
+    <script type='text/javascript' src='jscript/jquery-1.11.0.min.js'></script>
+	
+	<script type='text/javascript' 
+	src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js'></script>
+	-->
+	
+    <script type='text/javascript' src='javascript/jquery.js'></script>
+    <script type='text/javascript' src='javascript/jquery-ui.js'></script>
+
+	<!--
+    <script type='text/javascript' src='javascript/ui.js'></script>
+    -->
+	
+	<style>
+
+	</style>
+	
+</head>
+
+
+
+<body>
+<div class='container'>
+	<div class='titlebar'>
+
+		<h1 class='center-content'>Canvas Test</h1>
+		
+
+	</div>
+	
+	<div class='stretch'>
+	
+		<div class='stretch-container'>
+			
+			<div class='canvas-div'>
+				<canvas id='tab00-canvas' height='675' width='900'>
+						Oops! Canvas not supported. Try Firefox!
+				</canvas>
+			</div>
+			
+		</div>
+ 	</div>
+	
+</div>
+
+
+<!---
+	Dialog boxes
+--->
+
+
+	<script>
+	$(".canvas-div").draggable(
+		{
+			containment: "parent",
+			//handle: "div",
+			cancel: "canvas"
+		}
+	);
+	
+	var canvas = $("canvas")[0];
+	var context = canvas.getContext("2d");
+
+	context.save();
+
+	context.fillStyle='white';
+	context.fillRect(0,0,context.canvas.width, context.canvas.height);
+	
+	const N = 10;
+	const celw = context.canvas.width/N;
+	const celh = context.canvas.height/N;
+	const digits = "0123456789abcdef";
+	
+	for(var i=0; i<N; i++){
+		for(var j=0; j<N; j++){
+			context.fillStyle= '#'+digits[i%16]+digits[i%16]+"00"+digits[j%16]+digits[j%16];
+			context.fillRect(context.canvas.width*(i/N)-1,context.canvas.height*(j/N)-1,context.canvas.width*((i+1)/N)+1, context.canvas.height*((j+1)/N)+1);
+		}
+	}
+	
+	context.restore();
+	
+	<!-- initialize state -->
+	var cells = [];
+	var cellneighbors = [];
+	<!-- var newcells = []; -->
+	<!-- var lastneighbors = []; -->
+	for(var i=0; i<N; i++){
+		var row = [];
+		for(var j=0; j<N; j++){
+			row.push(false);
+		}
+		cells.push(row);
+		cellneighbors.push(row);
+		
+		<!-- newcells.push(row); -->
+		<!-- lastneighbors.push(row); -->
+	}
+	
+	<!-- var lastx = -1; var lasty = -1; -->
+	canvas.addEventListener("click", function(click){
+		var x = Math.floor( ( click.offsetX ) / celw ) * celw;
+		var y = Math.floor( ( click.offsetY ) / celh ) * celh;
+		var I = x/celw; var J = y/celh;
+		
+		cells[I][J] = !cells[I][J];
+		if(!!cells[I][J]){
+			context.fillStyle="#66ccff";
+		}else{
+			context.fillStyle="#661111";
+		}
+		context.fillRect(x,y,celw,celh);
+		
+		<!-- if(lastx != -1 || lasty != -1){ -->
+			<!-- context.strokeStyle = "#336688"; -->
+			<!-- context.moveTo(lastx+celw/2,lasty+celh/2); -->
+			<!-- context.lineTo(x+celw/2,y+celh/2); -->
+			<!-- context.stroke(); -->
+		<!-- } -->
+		<!-- lastx=x; lasty=y; -->
+	});
+	
+	
+	<!-- Step through the state -->
+	addEventListener("keydown", function(keydown){
+		if(keydown.key == "Enter"){
+			
+			for(var i = 0; i < N; i++){
+				for(var j = 0; j < N; j++){
+					var neighborcount = 0;
+					<!-- count neighbors -->
+					for(var I = -1; I < 2; I++){
+						for(var J = -1; J < 2; J++){
+							if( (I!=0||J!=0) && i+I >= 0 && i+I < N && j+J >= 0 && j+J < N && cells[i+I][j+J] ){
+								neighborcount++;
+							}
+						}
+					}
+					
+					cellneighbors[i][j] = neighborcount;
+					<!-- newcells[i][j] = ( neighborcount == 3 || ( neighborcount == 2 && cells[i][j] ) );  -->
+					
+				}
+			}
+			
+			for(var i = 0; i < N; i++){ for(var j=0; j < N; j++){
+				<!-- cells[i][j] = newcells[i][j]; -->
+				var wasalive = cells[i][j];
+				var neighbors = cellneighbors[i][j];
+				cells[i][j] = ( neighbors == 3 || ( neighbors == 2 && wasalive ) );
+				
+				if(cells[i][j]){
+					context.fillStyle="#66ccff";
+				<!-- }else if(wasalive){ -->
+					<!-- context.fillStyle="#cc6611"; -->
+				}else{
+					context.fillStyle="#661111";
+				}
+				context.fillRect(i*celw,j*celh,celw,celh);
+				
+				
+				context.font = "30px Arial";
+				context.fillStyle="#cc66cc";
+				context.fillText(cells[i][j], i*celw+celw/3,j*celh+celh/3,celw/2,celh/2);
+				context.fillText(neighbors, i*celw+celw/2,j*celh+celh*2/3,celw/2,celh/2);
+				
+			}}
+			
+		}
+	});
+	
+	</script>
+	
+  </body>
+</html>

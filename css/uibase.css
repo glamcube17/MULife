@@ -1,0 +1,87 @@
+* {
+	padding: 0;
+	margin: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+.container {
+	min-height: 100%;
+	background-color: #fff;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.stretch{
+	background-color: #fff;
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+}
+
+
+.stretch-container {
+	flex-direction: column;
+	flex: 1;
+	position: relative;
+}
+
+
+
+.titlebar {
+	padding: 8px;
+}
+
+.titlebar h1{
+	position: relative;
+}
+
+.titlebar button{
+}
+
+
+
+.center-content{
+	text-align: center;
+}
+
+.center-position {
+	position: relative;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+.left-position{
+	/* display: none;*/
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+
+.right-position{
+	/* do not use with draggable content */
+	/* float right instead */
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	padding-right: 20px;
+}
+
+
+.canvas-div{
+	float: left;
+	z-index: 10;
+	padding: 17px;
+	background-color: #f8f8f8;
+    border: 3px solid #00d0d0;
+	border-radius: 10px;
+}
+
+canvas{
+    display: block;
+}
+		
