@@ -84,8 +84,8 @@
 	const celh = context.canvas.height/N;
 	const digits = "0123456789abcdef";
 	
-	for(var i=0; i<N; i++){
-		for(var j=0; j<N; j++){
+	for(let i=0; i<N; i++){
+		for(let j=0; j<N; j++){
 			context.fillStyle= '#'+digits[i%16]+digits[i%16]+"00"+digits[j%16]+digits[j%16];
 			context.fillRect(context.canvas.width*(i/N)-1,context.canvas.height*(j/N)-1,context.canvas.width*((i+1)/N)+1, context.canvas.height*((j+1)/N)+1);
 		}
@@ -96,15 +96,17 @@
 	<!-- initialize state -->
 	var cells = [];
 	var cellneighbors = [];
+	var cellneighbordirections = []; <!-- debug -->
 	<!-- var newcells = []; -->
 	<!-- var lastneighbors = []; -->
-	for(var i=0; i<N; i++){
-		var row = [];
-		for(var j=0; j<N; j++){
+	for(let i=0; i<N; i++){
+		let row = [];
+		for(let j=0; j<N; j++){
 			row.push(false);
 		}
 		cells.push(row);
 		cellneighbors.push(row);
+		cellneighbordirections.push(row);
 		
 		<!-- newcells.push(row); -->
 		<!-- lastneighbors.push(row); -->
@@ -112,9 +114,9 @@
 	
 	<!-- var lastx = -1; var lasty = -1; -->
 	canvas.addEventListener("click", function(click){
-		var x = Math.floor( ( click.offsetX ) / celw ) * celw;
-		var y = Math.floor( ( click.offsetY ) / celh ) * celh;
-		var I = x/celw; var J = y/celh;
+		let x = Math.floor( ( click.offsetX ) / celw ) * celw;
+		let y = Math.floor( ( click.offsetY ) / celh ) * celh;
+		let I = x/celw; var J = y/celh;
 		
 		cells[I][J] = !cells[I][J];
 		if(!!cells[I][J]){
@@ -137,50 +139,80 @@
 	<!-- Step through the state -->
 	addEventListener("keydown", function(keydown){
 		if(keydown.key == "Enter"){
-			
-			for(var i = 0; i < N; i++){
-				for(var j = 0; j < N; j++){
-					var neighborcount = 0;
-					<!-- count neighbors -->
-					for(var I = -1; I < 2; I++){
-						for(var J = -1; J < 2; J++){
-							if( (I!=0||J!=0) && i+I >= 0 && i+I < N && j+J >= 0 && j+J < N && cells[i+I][j+J] ){
-								neighborcount++;
-							}
+			doStep();
+		}
+	});
+	
+	
+	
+	
+	
+	function doStep(){
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < N; j++){
+				let neighborcount = 0;
+				let neighbordirs = [];
+				<!-- count neighbors -->
+				for(let I = -1; I < 2; I++){
+					for(let J = -1; J < 2; J++){
+						<!-- if( (I!=0||J!=0) && i+I >= 0 && i+I < N && j+J >= 0 && j+J < N && cells[i+I][j+J] ){ -->
+						if( (I!=0||J!=0) && ( i+I >=0 && i+I < N && j+J >= 0 && j+J < N ) && cells[i+I][j+J] === true ){
+							neighborcount++;
+							<!-- neighbordirs.push([[7,4,1],[8,5,2],[9,6,3]][I+1][J+1]); -->
+							<!-- neighbordirs.push([I,J]); -->
 						}
 					}
-					
-					cellneighbors[i][j] = neighborcount;
-					<!-- newcells[i][j] = ( neighborcount == 3 || ( neighborcount == 2 && cells[i][j] ) );  -->
-					
 				}
-			}
-			
-			for(var i = 0; i < N; i++){ for(var j=0; j < N; j++){
-				<!-- cells[i][j] = newcells[i][j]; -->
-				var wasalive = cells[i][j];
-				var neighbors = cellneighbors[i][j];
-				cells[i][j] = ( neighbors == 3 || ( neighbors == 2 && wasalive ) );
 				
-				if(cells[i][j]){
+				cellneighbors[i][j] = neighborcount;
+				<!-- newcells[i][j] = ( neighborcount == 3 || ( neighborcount == 2 && cells[i][j] ) );  -->
+				
+			}
+		}
+		
+		for(let i=0; i < N; i++){ 
+			for(let j=0; j < N; j++){
+				<!-- cells[i][j] = newcells[i][j]; -->
+				let wasalive = cells[i][j] === true;
+				let neighbors = cellneighbors[i][j];
+				let isalive = ( neighbors == 3 || ( neighbors == 2 && wasalive ) );
+				cells[i][j] = isalive;
+				
+				if(isalive){
 					context.fillStyle="#66ccff";
-				<!-- }else if(wasalive){ -->
-					<!-- context.fillStyle="#cc6611"; -->
+				}else if(wasalive){
+					context.fillStyle="#993311";
 				}else{
-					context.fillStyle="#661111";
+					<!-- context.fillStyle="#66"+(2*(j%2))+"1"+(2*((i%2))+"1"; -->
+					context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
 				}
 				context.fillRect(i*celw,j*celh,celw,celh);
 				
 				
-				context.font = "30px Arial";
+				<!-- debug stuff -->
+				
+				context.font = "20px Arial";
 				context.fillStyle="#cc66cc";
 				context.fillText(cells[i][j], i*celw+celw/3,j*celh+celh/3,celw/2,celh/2);
 				context.fillText(neighbors, i*celw+celw/2,j*celh+celh*2/3,celw/2,celh/2);
 				
-			}}
-			
+				
+				<!-- context.fillStyle="#33ff66"; -->
+				<!-- let cx = i*celw+celw/2; -->
+				<!-- let cy = j*celh+celh/2; -->
+				<!-- for(let k = 0; k < cellneighbordirections[i][j].length; k++){ -->
+					<!-- let I = cellneighbordirections[i][j][k][0]; -->
+					<!-- let J = cellneighbordirections[i][j][k][1]; -->
+					<!-- context.fillRect(cx+celw/2*I,cy+celh/2*J,30,30); -->
+					<!-- context.fillText(cellneighbordirections, cx,cy+celh*0.75,celw/2,celh/4); -->
+				<!-- } -->
+				
+			}
 		}
-	});
+	}
+	
+	<!-- mainly for debugging at the moment -->
+	function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 	
 	</script>
 	
