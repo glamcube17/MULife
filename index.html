@@ -3,7 +3,7 @@
 <head> 
 	<meta charset='UTF-8'/>
     <html lang='en'>
-	<title>Canvas Test</title>
+	<title>Game of Life Test</title>
 	
     <link rel='stylesheet' href='css/jquery-ui.css'>
 	<link rel='stylesheet' 
@@ -36,7 +36,10 @@
 <div class='container'>
 	<div class='titlebar'>
 
-		<h1 class='center-content'>Canvas Test</h1>
+		<h1 class='center-content'>Game of Life Test</h1>
+		
+		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | A: Auto-step | -/=: Slow/speed auto-step rate</h4>
+		<h4 class='center-content'> R: Randomize board | C: Clear board | I: Invert board</h4>
 		
 
 	</div>
@@ -46,7 +49,6 @@
 		<div class='stretch-container'>
 			
 			<div class='canvas-div'>
-				<!-- <canvas id='tab00-canvas' height='675' width='900'> -->
 				<canvas id='tab00-canvas' height='1024' width='1024'>
 						Oops! Canvas not supported. Try Firefox!
 				</canvas>
@@ -83,6 +85,9 @@
 	
 	const N = 128;
 	
+	var autoStepping = false;
+	var autoStepRate = 0;
+	
 	
 	const celw = context.canvas.width/N;
 	const celh = context.canvas.height/N;
@@ -97,7 +102,7 @@
 	
 	context.restore();
 	
-	<!-- initialize state -->
+	//initialize state
 	var cells = [];
 	var cellneighbors = [];
 	
@@ -114,38 +119,50 @@
 		cellneighbors.push(row);
 	}
 	doStep();
+	autoStep();
 	
 	canvas.addEventListener("click", function(click){
-		let x = Math.floor( ( click.offsetX ) / celw ) * celw;
-		let y = Math.floor( ( click.offsetY ) / celh ) * celh;
-		let I = x/celw; var J = y/celh;
-		
-		cells[I][J] = !cells[I][J];
-		if(cells[I][J] === true){
-			context.fillStyle="#66ccff";
-		}else{
-			context.fillStyle="#661111";
-		}
-		context.fillRect(x,y,celw,celh);
+		let i = Math.floor( ( click.offsetX ) / celw );
+		let j = Math.floor( ( click.offsetY ) / celh );
+		setCell(i,j,!cells[i][j]);
 	});
 	
 	
-	<!-- Step through the state -->
-	addEventListener("keydown", function(keydown){
-		if(keydown.key == "Enter"){
+	addEventListener("keydown", function(ev){
+		switch(ev.key){
+		case "Enter":
 			doStep();
+			break;
+		case "r": case "R":
+			randomizeBoard(Math.random());
+			break;
+		case "a": case "A":
+			autoStepping = !autoStepping;
+			break;
+		case "=":
+			autoStepRate = Math.max(0,autoStepRate-10);
+			break;
+		case "-":
+			autoStepRate = Math.min(1000,autoStepRate+10);
+			break;
+		case "c": case "C":
+			clearBoard();
+			break;
+		case "i": case "I":
+			invertBoard();
+			break;
 		}
 	});
 	
 	
 	
 	
-	
+	//Step through the state
 	function doStep(){
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < N; j++){
 				let neighborcount = 0;
-				<!-- count neighbors -->
+				//count neighbors
 				for(let I = -1; I < 2; I++){
 					for(let J = -1; J < 2; J++){
 						if( (I!=0||J!=0) && ( cells[(N+i+I)%N][(N+j+J)%N] === true ) ){
@@ -172,21 +189,60 @@
 					context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
 				}
 				context.fillRect(i*celw,j*celh,celw,celh);
-				
-				
-				<!-- debug stuff -->
-				
-				<!-- context.font = "20px Arial"; -->
-				<!-- context.fillStyle="#cc66cc"; -->
-				<!-- context.fillText(cells[i][j], i*celw+celw/3,j*celh+celh/3,celw/2,celh/2); -->
-				<!-- context.fillText(neighbors, i*celw+celw/2,j*celh+celh*2/3,celw/2,celh/2); -->
-				
-				
 			}
 		}
 	}
 	
-	<!-- mainly for debugging at the moment -->
+	
+	async function autoStep(){
+		while(true){
+			while(autoStepping){
+				await doStep();
+				await sleep(autoStepRate);
+			}
+			while(!autoStepping){
+				await sleep(autoStepRate+1);
+			}
+		}
+	}
+	
+	
+	
+	function setCell(i,j,state){
+		cells[i][j] = state;
+		if(state === true){
+			context.fillStyle="#66ccff";
+		}else{
+			context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
+		}
+		context.fillRect(i*celw,j*celh,celw,celh);
+	}
+	
+	function randomizeBoard(ratio){
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < N; j++){
+				setCell(i,j,( Math.random() > ratio ) );
+			}
+		}
+	}
+	
+	function clearBoard(){
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < N; j++){
+				setCell(i,j,false);
+			}
+		}
+	}
+	
+	function invertBoard(){
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < N; j++){
+				setCell(i,j,!cells[i][j]);
+			}
+		}
+	}
+	
+	
 	function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 	
 	</script>
