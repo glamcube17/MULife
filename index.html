@@ -96,20 +96,23 @@
 	<!-- initialize state -->
 	var cells = [];
 	var cellneighbors = [];
-	var cellneighbordirections = []; <!-- debug -->
+	<!-- var cellneighbordirections = []; <!-- debug --> -->
 	<!-- var newcells = []; -->
-	<!-- var lastneighbors = []; -->
+	
 	for(let i=0; i<N; i++){
 		let row = [];
 		for(let j=0; j<N; j++){
 			row.push(false);
 		}
 		cells.push(row);
+		row = [];
+		for(let j=0; j<N; j++){
+			row.push(0);
+		}
 		cellneighbors.push(row);
-		cellneighbordirections.push(row);
 		
 		<!-- newcells.push(row); -->
-		<!-- lastneighbors.push(row); -->
+		<!-- cellneighbordirections.push(row); -->
 	}
 	
 	<!-- var lastx = -1; var lasty = -1; -->
@@ -151,12 +154,10 @@
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < N; j++){
 				let neighborcount = 0;
-				let neighbordirs = [];
 				<!-- count neighbors -->
 				for(let I = -1; I < 2; I++){
 					for(let J = -1; J < 2; J++){
-						<!-- if( (I!=0||J!=0) && i+I >= 0 && i+I < N && j+J >= 0 && j+J < N && cells[i+I][j+J] ){ -->
-						if( (I!=0||J!=0) && ( i+I >=0 && i+I < N && j+J >= 0 && j+J < N ) && cells[i+I][j+J] === true ){
+						if( (I!=0||J!=0) && ( i+I >=0 && i+I < N && j+J >= 0 && j+J < N ) && ( cells[i+I][j+J] === true ) ){
 							neighborcount++;
 							<!-- neighbordirs.push([[7,4,1],[8,5,2],[9,6,3]][I+1][J+1]); -->
 							<!-- neighbordirs.push([I,J]); -->
@@ -173,9 +174,9 @@
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < N; j++){
 				<!-- cells[i][j] = newcells[i][j]; -->
-				let wasalive = cells[i][j] === true;
+				let wasalive = ( cells[i][j] == true );
 				let neighbors = cellneighbors[i][j];
-				let isalive = ( neighbors == 3 || ( neighbors == 2 && wasalive ) );
+				let isalive = !!( neighbors == 3 || ( neighbors == 2 && wasalive ) );
 				cells[i][j] = isalive;
 				
 				if(isalive){
