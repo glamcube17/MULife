@@ -38,9 +38,11 @@
 
 		<h1 class='center-content'>Game of Life Test</h1>
 		
-		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | A: Auto-step | -/=: Slow/speed auto-step rate</h4>
-		<h4 class='center-content'> R: Randomize board | C: Clear board | I: Invert board</h4>
+		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | a: Auto-step | -/=: Slow/speed auto-step rate</h4>
+		<h4 class='center-content'> r: Randomize board | C: Clear board | I: Invert board</h4>
+		<h4 class='center-content'> H: Toggle Life/HighLife</h4>
 		
+		<!-- <input type="checkbox" name="highLifeCheckbox" value="HighLife" />HighLife -->
 
 	</div>
 	
@@ -49,30 +51,48 @@
 		<div class='stretch-container'>
 			
 			<div class='canvas-div'>
-				<canvas id='tab00-canvas' height='1024' width='1024'>
+				<canvas id='life-canvas' height='512' width='512'>
 						Oops! Canvas not supported. Try Firefox!
 				</canvas>
+				
+
+			
 			</div>
+			
+			<!-- @todo I'm aware this is not how to do formatting -->
+			<!-- I'll do it properly later when I can be bothered to remember how -->
+			<br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br />
+			<br />
+			<!-- <br /><br /><br /><br /><br /> -->
+			
+			<h4>copy/paste text to import/export board state</h4>
+			<button onclick='serialize()'>Export</button>
+			<button onclick='deserialize()'>Import</button>
+			<br />
+			<textarea name='iotextbox' id='iotextbox' cols='129' rows='16' onclick='this.select()'>63,63,<br />.OO<br />OO.<br />.O.</textarea>
 			
 		</div>
  	</div>
 	
+	
+	
 </div>
 
 
-<!---
-	Dialog boxes
---->
-
 
 	<script>
-	$(".canvas-div").draggable(
-		{
-			containment: "parent",
-			//handle: "div",
-			cancel: "canvas"
-		}
-	);
+	//Don't see the need for this to be draggable and it was making the layout hard to actually format
+	<!-- $(".canvas-div").draggable( -->
+		<!-- { -->
+			<!-- containment: "parent", -->
+			<!-- //handle: "div", -->
+			<!-- cancel: "canvas" -->
+		<!-- } -->
+	<!-- ); -->
 	
 	var canvas = $("canvas")[0];
 	var context = canvas.getContext("2d");
@@ -83,22 +103,21 @@
 	context.fillRect(0,0,context.canvas.width, context.canvas.height);
 	
 	
+	var textbox = document.getElementById("iotextbox");
+	textbox.contentEditable = "true";
+	
+	
+	
+	
 	const N = 128;
 	
 	var autoStepping = false;
 	var autoStepRate = 0;
 	
+	var highLife = false;
 	
 	const celw = context.canvas.width/N;
 	const celh = context.canvas.height/N;
-	const digits = "0123456789abcdef";
-	
-	<!-- for(let i=0; i<N; i++){ -->
-		<!-- for(let j=0; j<N; j++){ -->
-			<!-- context.fillStyle= '#'+digits[i%16]+digits[i%16]+"00"+digits[j%16]+digits[j%16]; -->
-			<!-- context.fillRect(context.canvas.width*(i/N)-1,context.canvas.height*(j/N)-1,context.canvas.width*((i+1)/N)+1, context.canvas.height*((j+1)/N)+1); -->
-		<!-- } -->
-	<!-- } -->
 	
 	context.restore();
 	
@@ -129,6 +148,7 @@
 	
 	
 	addEventListener("keydown", function(ev){
+		if(ev.ctrlKey || ev.altKey){return;}
 		switch(ev.key){
 		case "Enter":
 			doStep();
@@ -145,11 +165,14 @@
 		case "-":
 			autoStepRate = Math.min(1000,autoStepRate+10);
 			break;
-		case "c": case "C":
+		case "C":
 			clearBoard();
 			break;
-		case "i": case "I":
+		case "I":
 			invertBoard();
+			break;
+		case "H":
+			highLife = !highLife;
 			break;
 		}
 	});
@@ -178,7 +201,7 @@
 			for(let j=0; j < N; j++){
 				let wasalive = ( cells[i][j] == true );
 				let neighbors = cellneighbors[i][j];
-				let isalive = !!( neighbors == 3 || ( neighbors == 2 && wasalive ) );
+				let isalive = !!( neighbors == 3 || ( neighbors == 2 && wasalive ) || highLife && neighbors == 6 );
 				cells[i][j] = isalive;
 				
 				if(isalive){
@@ -209,6 +232,7 @@
 	
 	
 	function setCell(i,j,state){
+		if(i >= N || j >= N || i < 0 || j < 0){ return; }
 		cells[i][j] = state;
 		if(state === true){
 			context.fillStyle="#66ccff";
@@ -244,6 +268,61 @@
 	
 	
 	function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+	
+	
+	
+	
+	function serialize(){
+		let str = "";
+		for(let j=0; j<N; j++){
+			for(let i=0; i<N; i++){
+				str = str + ( cells[i][j] ? "O":"." );
+			}
+			str = str + '\n'; //"\n";
+		}
+		textbox.value = str;
+		textbox.select();
+		document.execCommand("copy");
+	}
+	function deserialize(){
+		let str = textbox.value;
+		
+		let i0 = 0; let j0 = 0;
+		if(str.split(',').length > 1){
+			i0 = Number(str.split(',')[0]);
+			j0 = Number(str.split(',')[1]);
+			str = str.split(',')[2];
+		}
+		
+		let c = 0; let C = Math.min(str.length, (N-i0)*(N-j0));
+		let i = i0; let j = j0; let c0 = 0;
+		if(str[0] == '\n'){ c0 = 1; }
+		for(c = c0; c < C; c++){
+			<!-- if(i >= N){ j++; i=i0; continue; } -->
+			<!-- if(j >= N){ return; } -->
+			switch(str[c]){
+				case 'O':
+					setCell(i,j,true);
+					i++;
+					break;
+				case '.':
+					setCell(i,j,false);
+					i++;
+					break;
+				case '\n':
+					j++;
+					i=i0;
+					break;
+				case ' ':
+					i++;
+					break;
+			}
+			
+		}
+	}
+	
+	
+	
 	
 	</script>
 	
