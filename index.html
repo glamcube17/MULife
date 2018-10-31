@@ -41,6 +41,9 @@
 		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | a: Auto-step | -/=: Slow/speed auto-step rate</h4>
 		<h4 class='center-content'> r: Randomize board | C: Clear board | I: Invert board</h4>
 		<h4 class='center-content'> H: Toggle Life/HighLife</h4>
+		<h4 class='center-content'> u: Toggle auto fetch from server</h4>
+		
+		<!-- <h4 class='center-content'>LMouse: Toggle cell | Enter: Toggle step | Space: 1-step | -/=: Slow/speed auto-step rate</h4> -->
 		
 		<!-- <input type="checkbox" name="highLifeCheckbox" value="HighLife" />HighLife -->
 
@@ -51,7 +54,8 @@
 		<div class='stretch-container'>
 			
 			<div class='canvas-div'>
-				<canvas id='life-canvas' height='512' width='512'>
+				<!-- <canvas id='life-canvas' height='512' width='512'> -->
+				<canvas id='life-canvas' height='2048' width='2048'>
 						Oops! Canvas not supported. Try Firefox!
 				</canvas>
 				
@@ -69,11 +73,18 @@
 			<br />
 			<!-- <br /><br /><br /><br /><br /> -->
 			
+			<h4>S/B rules</h4>
+			<textarea name='survIO' id='survIO' cols='10' rows='1'>S: 23</textarea>
+			<textarea name='bornIO' id='bornIO' cols='10' rows='1'>B: 3</textarea>
+			<button onclick='setSBrules()'>Apply</button>
+			<br />
+			
 			<h4>copy/paste text to import/export board state</h4>
 			<button onclick='serialize()'>Export</button>
-			<button onclick='deserialize()'>Import</button>
+			<button onclick='deserialize(textbox.value)'>Import</button>
 			<br />
-			<textarea name='iotextbox' id='iotextbox' cols='129' rows='16' onclick='this.select()'>63,63,<br />.OO<br />OO.<br />.O.</textarea>
+			<!-- <textarea name='iotextbox' id='iotextbox' cols='129' rows='16' onclick='this.select()'>63,63,.OO/OO./.O.</textarea> -->
+			<textarea name='iotextbox' id='iotextbox' cols='129' rows='16'>63,63,.OO/OO./.O.</textarea>
 			
 		</div>
  	</div>
@@ -104,7 +115,11 @@
 	
 	
 	var textbox = document.getElementById("iotextbox");
+	var survbox = document.getElementById("survIO");
+	var bornbox = document.getElementById("bornIO");
 	textbox.contentEditable = "true";
+	survbox.contentEditable = "true";
+	bornbox.contentEditable = "true";
 	
 	
 	
@@ -112,9 +127,13 @@
 	const N = 128;
 	
 	var autoStepping = false;
+	var autoFetching = false;
 	var autoStepRate = 0;
 	
 	var highLife = false;
+	
+	var surv = [2,3];
+	var born = [3];
 	
 	const celw = context.canvas.width/N;
 	const celh = context.canvas.height/N;
@@ -137,12 +156,15 @@
 		}
 		cellneighbors.push(row);
 	}
-	doStep();
+	setSBrules(); //text entered in boxes reapplied on refresh
+	<!-- doStep(); -->
 	autoStep();
+	autoFetch();
 	
 	canvas.addEventListener("click", function(click){
 		let i = Math.floor( ( click.offsetX ) / celw );
 		let j = Math.floor( ( click.offsetY ) / celh );
+		postchange(i,j,!cells[i][j]);
 		setCell(i,j,!cells[i][j]);
 	});
 	
@@ -151,6 +173,9 @@
 		if(ev.ctrlKey || ev.altKey){return;}
 		switch(ev.key){
 		case "Enter":
+			<!-- autoStepping = !autoStepping; -->
+			<!-- break; -->
+		<!-- case " ": -->
 			doStep();
 			break;
 		case "r": case "R":
@@ -173,6 +198,9 @@
 			break;
 		case "H":
 			highLife = !highLife;
+			break;
+		case "u": case "U":
+			autoFetching = !autoFetching;
 			break;
 		}
 	});
@@ -201,12 +229,14 @@
 			for(let j=0; j < N; j++){
 				let wasalive = ( cells[i][j] == true );
 				let neighbors = cellneighbors[i][j];
-				let isalive = !!( neighbors == 3 || ( neighbors == 2 && wasalive ) || highLife && neighbors == 6 );
+				<!-- let isalive = !!( neighbors == 3 || ( neighbors == 2 && wasalive ) || highLife && neighbors == 6 ); -->
+				<!-- let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( $.inArray(neighbors, born)!==-1 ); -->
+				let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
 				cells[i][j] = isalive;
 				
 				if(isalive){
 					context.fillStyle="#66ccff";
-				}else if(wasalive){
+				}else if(wasalive && !autoStepping){
 					context.fillStyle="#993311";
 				}else{
 					context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
@@ -225,6 +255,18 @@
 			}
 			while(!autoStepping){
 				await sleep(autoStepRate+1);
+			}
+		}
+	}
+	
+	async function autoFetch(){
+		while(true){
+			while(autoFetching){
+				await fetchupdate();
+				await sleep(1000);
+			}
+			while(!autoFetching){
+				await sleep(1000);
 			}
 		}
 	}
@@ -278,14 +320,14 @@
 			for(let i=0; i<N; i++){
 				str = str + ( cells[i][j] ? "O":"." );
 			}
-			str = str + '\n'; //"\n";
+			str = str + '\n';
 		}
 		textbox.value = str;
 		textbox.select();
 		document.execCommand("copy");
 	}
-	function deserialize(){
-		let str = textbox.value;
+	function deserialize(str){
+		<!-- let str = textbox.value; -->
 		
 		let i0 = 0; let j0 = 0;
 		if(str.split(',').length > 1){
@@ -298,8 +340,6 @@
 		let i = i0; let j = j0; let c0 = 0;
 		if(str[0] == '\n'){ c0 = 1; }
 		for(c = c0; c < C; c++){
-			<!-- if(i >= N){ j++; i=i0; continue; } -->
-			<!-- if(j >= N){ return; } -->
 			switch(str[c]){
 				case 'O':
 					setCell(i,j,true);
@@ -309,7 +349,7 @@
 					setCell(i,j,false);
 					i++;
 					break;
-				case '\n':
+				case '\n': case '/': case ',':
 					j++;
 					i=i0;
 					break;
@@ -321,6 +361,49 @@
 		}
 	}
 	
+	function setSBrules(){
+		let survstr = survbox.value;
+		let bornstr = bornbox.value;
+		surv = [];
+		born = [];
+		for(i = 0; i < survstr.length; i++){ surv.push(parseInt(survstr[i])); }
+		for(i = 0; i < bornstr.length; i++){ born.push(parseInt(bornstr[i])); }
+		console.log(surv);
+		console.log(born);
+		console.log(typeof(surv[0]));
+	}
+	
+	
+	
+	
+	function fetchupdate() {
+		xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET","http://localhost:8001/getboard", true);
+		xmlhttp.onreadystatechange=function(){
+			if (xmlhttp.readyState==4 && xmlhttp.status==200){
+				string=xmlhttp.responseText;
+				deserialize(string);
+				//@todo if timer expired, stop updating, lock changes, and start stepping through
+			}
+		}
+		xmlhttp.send();
+	}
+	fetchupdate();
+	
+	
+	function postchange(x,y,state) {
+		xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST","http://localhost:8001/changeboard?x="+x+"&y="+y+"&state="+state, true);
+		<!-- xmlhttp.writeHead(200, {"Content-Type": "text/plain"}); -->
+			<!-- if (xmlhttp.readyState==4 && xmlhttp.status==200){ -->
+				<!-- string=xmlhttp.responseText; -->
+				<!-- textbox.value = string; -->
+			<!-- } -->
+		<!-- } -->
+		<!-- xmlhttp.onreadystatechange=function(){ -->
+		xmlhttp.send();
+		<!-- xmlhttp.send('x='+x+'&y='+y+'&state='+state); -->
+	}
 	
 	
 	
