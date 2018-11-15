@@ -42,6 +42,7 @@
 		<h4 class='center-content'> r: Randomize board | C: Clear board | I: Invert board</h4>
 		<h4 class='center-content'> H: Toggle Life/HighLife</h4>
 		<h4 class='center-content'> u: Toggle auto fetch from server</h4>
+		<h4 class='center-content'> n/N: Add/remove random noise</h4>
 		
 		<!-- <h4 class='center-content'>LMouse: Toggle cell | Enter: Toggle step | Space: 1-step | -/=: Slow/speed auto-step rate</h4> -->
 		
@@ -125,10 +126,13 @@
 	
 	
 	const N = 128;
+	var cnt=0;
 	
 	var autoStepping = false;
 	var autoFetching = false;
 	var autoStepRate = 0;
+	
+	var noiseRate = 0;
 	
 	var highLife = false;
 	
@@ -157,7 +161,6 @@
 		cellneighbors.push(row);
 	}
 	setSBrules(); //text entered in boxes reapplied on refresh
-	<!-- doStep(); -->
 	autoStep();
 	autoFetch();
 	
@@ -202,6 +205,12 @@
 		case "u": case "U":
 			autoFetching = !autoFetching;
 			break;
+		case "n":
+			noiseRate = Math.min(100,noiseRate+1);
+			break;
+		case "N":
+			noiseRate = Math.max(0,noiseRate-1);
+			break;
 		}
 	});
 	
@@ -225,6 +234,8 @@
 			}
 		}
 		
+		if(noiseRate > 0 && cnt%(101-noiseRate)==0){addNoise();}
+		
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < N; j++){
 				let wasalive = ( cells[i][j] == true );
@@ -244,6 +255,9 @@
 				context.fillRect(i*celw,j*celh,celw,celh);
 			}
 		}
+		
+		cnt++;
+		return;
 	}
 	
 	
@@ -270,6 +284,7 @@
 			}
 		}
 	}
+	
 	
 	
 	
@@ -306,6 +321,14 @@
 				setCell(i,j,!cells[i][j]);
 			}
 		}
+	}
+	
+	
+	function addNoise(){
+		let num = Math.floor(Math.random()*Math.pow(noiseRate,0.5));
+		let x = Math.floor(Math.random()*N);
+		let y = Math.floor(Math.random()*N);
+		setCell(x,y,true);
 	}
 	
 	
