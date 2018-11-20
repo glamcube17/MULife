@@ -62,7 +62,8 @@ http.createServer(function(request, response){
 		console.log("new state saved");
 		
 		
-		mscon.query('INSERT INTO changes(x,y,ts,newstate) VALUES('+x+','+y+','+Math.round(Date.now()/1000)+','+state+')',
+		// mscon.query('INSERT INTO changes(x,y,ts,ns) VALUES('+x+','+y+','+Math.round(Date.now()/1000)+','+state+')',
+		mscon.query('INSERT INTO changes(x,y,ts,ns) VALUES('+x+','+y+','+Date.now()+','+state+')',
 		  function (err, result, fields) {
 			if (err) throw err;
 			// console.log(result);
