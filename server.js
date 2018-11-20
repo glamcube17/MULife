@@ -6,29 +6,19 @@ var http = require('http'),
 	N = 128;
 	
 var mscon = mysql.createConnection({
-	// host: "localhost",
-	host: "127.0.0.1",
+	host: "localhost",
 	user: "root",
-	password: "IAmR00t"
+	password: "IAmR00t",
+	database: "projdb"
 });
-
-// 'use strict';
-// const mysqlx = require('@mysql/xdevapi');
-// const options = {
-  // host: 'localhost',
-  // port: 33060,
-  // password: 'IAmR00t',
-  // user: 'root',
-  // schema: 'projdb'
-// };
 
 
 mscon.connect(function(err) {
 	if(err) throw err; //Here's where it's throwing a bitch fit about not supporting shit
-	mscon.query("SELECT x,y,ts FROM changes WHERE newstate=1", function (err, result) {
-		if (err) throw err;
-		console.log("Result: " + result);
-	});
+	// mscon.query("SELECT * FROM changes", function (err, result, fields) {
+		// if (err) throw err;
+		// console.log(result);
+	// });
 }); 
 	
 http.createServer(function(request, response){
@@ -70,6 +60,15 @@ http.createServer(function(request, response){
 		
 		fs.writeFileSync('board.txt', lines.join('\n'));
 		console.log("new state saved");
+		
+		
+		mscon.query('INSERT INTO changes(x,y,ts,newstate) VALUES('+x+','+y+','+Math.round(Date.now()/1000)+','+state+')',
+		  function (err, result, fields) {
+			if (err) throw err;
+			// console.log(result);
+		});
+	
+		
 		// response.setContentType("text/plain"); 
 		response.writeHead(200, {"Content-Type": "text/plain"});
 		response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); 
