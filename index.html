@@ -26,12 +26,42 @@
 	
 	<style>
 		html, body {
-			width: 100%;
-			height: 100%;
-			margin: 0px;
+			width: 95%;
+			height: 95%;
+			margin: 0;
 			border: 0;
-			overflow: hidden; <!-- no scroll bars -->
-			display: block; <!-- no floating content on sides (?) -->
+			padding: 5px;
+			<!-- overflow: hidden; <!-- no scroll bars --> -->
+			display: block;
+			font-size: 125%;
+			font-family: Verdana, Geneva, sans-serif;
+		}
+		.row {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			width: 100%;
+		}
+		.column {
+			display: flex;
+			flex-direction: column;
+			flex-basis: 100%;
+			flex: 1;
+		}
+		.button{
+			font-size: 70%;
+			display: inline-block;
+			text-align: center;
+			padding: 0px 12px;
+			margin: 2px 12px;
+			background-color: #4C50AF;
+			border: none;
+			color: white;
+		}
+		.field{
+			font-size: 150%;
+			resize: none;
+			overflow: auto;
 		}
 	</style>
 	
@@ -41,60 +71,69 @@
 
 <body>
 <div class='container'>
-	<div class='titlebar'>
+	<div class='row'>
 
-		<h1 class='center-content'>μLife</h1>
-		
-		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | Space: Auto-step | -/=: Slow/speed auto-step rate</h4>
-		<h4 class='center-content'>[]: Zoom | Arrow keys: Pan</h4>
-		<h4 class='center-content'> u: Toggle auto fetch from server</h4>
-		<h4 class='center-content'> r: Randomize board | C: Clear board | I: Invert board</h4>
-		<!-- <h4 class='center-content'> n/N: Add/remove random noise</h4> -->
-		<!-- <h4 class='center-content'> H: Toggle Life/HighLife</h4> -->
-		
-		<!-- <h4 class='center-content'>LMouse: Toggle cell | Enter: Toggle step | Space: 1-step | -/=: Slow/speed auto-step rate</h4> -->
-		
-		<!-- <input type="checkbox" name="highLifeCheckbox" value="HighLife" />HighLife -->
-
-	</div>
-	
-	<div class='stretch'>
-	
-		<div class='stretch-container'>
-			
-			<div class='canvas-div'>
-				<!-- <canvas id='life-canvas' height='512' width='512'> -->
-				<canvas id='life-canvas' height='2048' width='2048'>
-						Oops! Canvas not supported. Try Firefox!
-				</canvas>
-				
-
-			
+		<div class='column' style='flex:0.25'>
+			<div class='stretch'>
+				<div class='stretch-container' style='flex:2'>
+					<div class='canvas-div'>
+						<canvas id='life-canvas' height='128' width='128'>
+								Oops! Canvas not supported. Try Firefox!
+						</canvas>
+						
+					</div>
+				</div>
 			</div>
-			
-			<h4>S/B rules</h4>
-			<textarea name='survIO' id='survIO' cols='10' rows='1'>S: 23</textarea>
-			<textarea name='bornIO' id='bornIO' cols='10' rows='1'>B: 3</textarea>
-			<button onclick='setSBrules()'>Apply</button>
-			<br />
-			<br />
-			
-			<h4>save/load current board state with specified name</h4>
-			<button onclick='boardname = channelIO.value; postboard();'>Save</button>
-			<button onclick='boardname = channelIO.value; fetchupdate();'>Load</button>
-			name: <textarea name='channelIO' id='channelIO' cols='10' rows='1'>default</textarea>
-			<br />
-			<br />
-			<h4>copy/paste text to import/export board state</h4>
-			<button onclick='serialize()'>Export</button>
-			<button onclick='deserialize(textbox.value)'>Import</button>
-			data: <textarea name='iotextbox' id='iotextbox' cols='16' rows='1'>63,63,.OO/OO./.O.</textarea>
-			
 		</div>
- 	</div>
-	
-	
-	
+		<div class='column' style='background-color:#ddd; flex:1.5; padding-left: 0.5vw'>
+			
+			<div class='titlebar'>
+
+				<h1 class='center-content'>μLife</h1>
+				<h4 class='center-content'>LMouse: Toggle cell | r: Randomize board | C: Clear board | I: Invert board</h4>
+				<h4 class='center-content'>Enter: 1-Step | Space: Auto-step | -/=: Slow/speed auto-step rate</h4>
+				<h4 class='center-content'>[]: Zoom | Arrow keys: Pan</h4>
+				<h4 class='center-content'>u: Toggle server sync</h4>
+				<!-- <h4 class='center-content'> n/N: Add/remove random noise</h4> -->
+				<!-- <h4 class='center-content'> H: Toggle Life/HighLife</h4> -->
+				
+				<!-- <h4 class='center-content'>LMouse: Toggle cell | Enter: Toggle step | Space: 1-step | -/=: Slow/speed auto-step rate</h4> -->
+			</div>
+			<br />
+				<!-- <input type="checkbox" name="highLifeCheckbox" value="HighLife" />HighLife -->
+			<div class='row'>
+				<div class='column' style='flex:0.5'>
+					<div class='container' style='background-color:inherit'>
+						<h4>Survive/Born rules</h4>
+						<textarea class='field' name='sbIO' id='sbIO' cols='16' rows='1' placeholder='S 23/B 3'>23/3</textarea>
+						<div class='row'>
+						<button class='button' class='column' onclick='setSBrules()'>Apply</button>
+						</div>
+						<br />
+						
+						<h4>Save/Load current board</h4>
+						<textarea class='field' name='channelIO' id='channelIO' cols='16' rows='1' placeholder='board name'></textarea>
+						<div class='row'>
+						<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; postboard();'>Save</button>
+						<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchupdate();'>Load</button>
+						</div>
+						<br />
+						
+						<h4>Import/Export plaintext</h4>
+						<textarea class='field' name='iotextbox' id='iotextbox' cols='16' rows='1' placeholder='serialized data' onclick='textbox.select();'></textarea>
+						<div class='row'>
+						<button class='button' class='column' onclick='deserialize(textbox.value)'>Import</button>
+						<button class='button' class='column' onclick='textbox.value = serialize()'>Export</button>
+						</div>
+					</div>
+				</div>
+				<div class='column'>
+					
+				</div>
+			</div>
+				
+		</div>
+	</div>
 </div>
 
 
@@ -105,7 +144,7 @@
 
 	context.save();
 	
-	let s = Math.min(window.innerWidth, window.innerHeight) * 0.8; //square
+	let s = Math.min(window.innerWidth, window.innerHeight) * 0.95; //square
 	canvas.width  = s;
 	canvas.height = s;
 
@@ -114,15 +153,17 @@
 	
 	
 	var textbox = document.getElementById("iotextbox");
-	var survbox = document.getElementById("survIO");
-	var bornbox = document.getElementById("bornIO");
 	var chanbox = document.getElementById("channelIO");
+	var rulebox = document.getElementById("sbIO");
+	<!-- var survbox = document.getElementById("survIO"); -->
+	<!-- var bornbox = document.getElementById("bornIO"); -->
 	textbox.contentEditable = "true";
-	survbox.contentEditable = "true";
-	bornbox.contentEditable = "true";
 	chanbox.contentEditable = "true";
+	rulebox.contentEditable = "true";
+	<!-- survbox.contentEditable = "true"; -->
+	<!-- bornbox.contentEditable = "true"; -->
 	
-	var boardname = channelIO.value;
+	var boardname = channelIO.value || 'default';
 	
 	// "COLLABORATIVE web-based multi-user"
 	
@@ -191,12 +232,15 @@
 		let j = Math.floor( ( click.offsetY - panY ) / viewscl / celh );
 		setCell(i,j,!cells[i][j]);
 		redraw();
-		postchange(i,j,!cells[i][j]);
+		if(autoFetching){ //syncing
+			postchange(i,j,!cells[i][j]);
+		}
 	});
 	
 	
 	addEventListener("keydown", function(ev){
 		if(ev.ctrlKey || ev.altKey){return;}
+		if($( document.activeElement ).filter('input,textarea').length > 0){return;}
 		switch(ev.key){
 		case "Enter":
 			if(ev.shiftKey){
@@ -206,9 +250,11 @@
 			}
 			break;
 		case "r": case "R":
-			randomizeBoard((Math.random()+0.3)/2);
+			randomizeBoard((Math.random()+0.6)/2);
 			break;
-		case "a": case "A": case " ":
+		case " ":
+			ev.preventDefault(); //prevent space scrolling down
+		<!-- case "a": case "A": -->
 			autoStepping = !autoStepping;
 			break;
 		case "=":
@@ -257,9 +303,9 @@
 			}
 			break;
 		case "ArrowLeft": case "ArrowRight": case "ArrowUp": case "ArrowDown":
+			ev.preventDefault(); //prevent window from scrolling
 			let absx = s-(s/2+panX/viewscl);
 			let absy = s-(s/2+panY/viewscl); 
-			textbox.value = absx;
 			switch(ev.key){
 				case "ArrowLeft":
 					if(absx >= 0){
@@ -287,7 +333,12 @@
 		}
 	});
 	
-	
+	window.addEventListener("resize", ()=>{
+		let s = Math.min(window.innerWidth, window.innerHeight) * 0.95; //square
+		canvas.width  = s;
+		canvas.height = s;
+		redraw();
+	});
 	
 	var redrawingFlag = 0; //to avoid wasting effort on multiple asynchronous redraws at once
 	function redraw(){
@@ -409,7 +460,7 @@
 	function randomizeBoard(ratio){
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < N; j++){
-				setCell(i,j,( Math.random() > ratio ) );
+				setCell(i,j,( Math.random() < ratio ) );
 			}
 		}
 		redraw();
@@ -453,20 +504,18 @@
 			}
 			str = str + '\n';
 		}
-		textbox.value = str;
-		textbox.select();
-		document.execCommand("copy");
+		<!-- textbox.value = str; -->
+		<!-- textbox.select(); -->
+		<!-- document.execCommand("copy"); -->
 		return str;
 	}
 	function deserialize(str){
-		<!-- let str = textbox.value; -->
-		
 		let i0 = 0; let j0 = 0;
-		if(str.split(',').length > 1){
-			i0 = Number(str.split(',')[0]);
-			j0 = Number(str.split(',')[1]);
-			str = str.split(',')[2];
-		}
+		<!-- if(str.split(',').length > 1){ -->
+			<!-- i0 = Number(str.split(',')[0]); -->
+			<!-- j0 = Number(str.split(',')[1]); -->
+			<!-- str = str.split(',')[2]; -->
+		<!-- } -->
 		
 		let c = 0; let C = Math.min(str.length, (N-i0)*(N-j0));
 		let i = i0; let j = j0; let c0 = 0;
@@ -494,8 +543,11 @@
 	}
 	
 	function setSBrules(){
-		let survstr = survbox.value;
-		let bornstr = bornbox.value;
+		let sb = (' '+rulebox.value.replace(/[^\d\/]/g,'')+' ').split('/');
+		<!-- let survstr = survbox.value.replace(/[^\d]/g,''); -->
+		<!-- let bornstr = bornbox.value.replace(/[^\d]/g,''); -->
+		let survstr = sb[0];
+		let bornstr = sb[1];
 		surv = [];
 		born = [];
 		for(i = 0; i < survstr.length; i++){ surv.push(parseInt(survstr[i])); }
@@ -510,8 +562,16 @@
 		xhr.open("GET","http://localhost:8001/getboard?name="+boardname, true);
 		xhr.onreadystatechange=function(){
 			if (xhr.readyState==4 && xhr.status==200){
-				string=xhr.responseText;
-				deserialize(string);
+				<!-- let params = url.parse(xhr.url, true).query; -->
+				<!-- let str = xhr.responseText; -->
+				let data = JSON.parse(xhr.responseText);
+				console.log(data);
+				let str = data.state.join('\n');
+				rulebox.value = data.survive + '/' + data.born;
+				<!-- survbox.value = data.survive; -->
+				<!-- bornbox.value = data.born; -->
+				deserialize(str);
+				setSBrules();
 				//@todo if timer expired, stop updating, lock changes, and start stepping through
 			}
 		}
@@ -529,9 +589,8 @@
 	function postboard() {
 		xhr = new XMLHttpRequest();
 		xhr.open("POST","http://localhost:8001/setboard?name="+boardname, true);
-		xhr.setRequestHeader("Access-Control-Allow-Origin", "*"); 
-		xhr.setRequestHeader("Content-Type", "text/plain");
-		let data = serialize();
+		<!-- let data = serialize(); -->
+		let data = JSON.stringify( { "name":boardname, "survive":surv.toString, "born":born.toString, "state":serialize().split('\n') } );
 		xhr.send(data);
 	}
 	

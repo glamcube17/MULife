@@ -76,8 +76,9 @@ html, body {
 	float: left;
 	z-index: 10;
 	padding: 17px;
-	background-color: #f8f8f8;
-    border: 3px solid #00d0d0;
+	/* background-color: #f8f8f8; */
+	background-color: #331111;
+    /* border: 3px solid #00d0d0; */
 	border-radius: 10px;
 }
 
