@@ -4,38 +4,32 @@ var http = require('http'),
 	url = require('url'),
 	mysql = require('mysql'),
 	N = 128;
+    
+var express = require('express');
+var cors = require('cors');
+var app = express();
+app.use(cors());
 	
 var mscon = mysql.createConnection({
 	host: "localhost",
 	user: "root",
-	password: "IAmR00t",
+	password: "IAmR00t", //@todo make this actually secure
 	database: "projdb"
 });
-
-
 mscon.connect(function(err) {
-	if(err) throw err; //Here's where it's throwing a bitch fit about not supporting shit
-	// mscon.query("SELECT * FROM changes", function (err, result, fields) {
-		// if (err) throw err;
-		// console.log(result);
-	// });
+	// if(err) throw err;
+	if(err) console.error(err); //it's a pain having it refuse to work unless the mysql server is running
 }); 
-	
+
 http.createServer(function(request, response){
 	var path = url.parse(request.url).pathname;
-	if(path=="/getstring"){
-		console.log("request recieved");
-		var string = choices[Math.floor(Math.random()*choices.length)];
-		console.log("string '" + string + "' chosen");
-		response.writeHead(200, {"Content-Type": "text/plain"});
-		response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); 
-		response.end(string);
-		console.log("string sent");
-	}
-	else if(path=="/getboard"){
+	if(path=="/getboard"){
+        let params = url.parse(request.url, true).query;
+        let name = (params.name || 'default').replace(/[/\\\.]/g,'');
 		console.log("request for a board state recieved");
-		var data = fs.readFileSync("./board.txt");
-		console.log("Synchronous read: \n" + data.toString());
+		// var data = fs.readFileSync("./board.txt");
+		var data = fs.readFileSync("./boards/"+name+".txt");
+		// console.log("Synchronous read: \n" + data.toString());
 		// response.setContentType("text/plain"); 
 		response.writeHead(200, {"Content-Type": "text/plain"});
 		response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); 
@@ -48,33 +42,50 @@ http.createServer(function(request, response){
 		// console.log(params);
 		let x = parseInt(params.x);
 		let y = parseInt(params.y);
+        let name = (params.name || 'default').replace(/[/\\\.]/g,'');
 		let state = (params.state == "true");
 		console.log("changing cell at x="+x+",y="+y+" to "+state);
-		let data = fs.readFileSync('board.txt').toString('UTF-8');
+		let data = fs.readFileSync('boards/'+name+'.txt').toString('UTF-8');
 		// console.log(data);
 		let lines = data.replace(/^\s+/,"").replace(/ /,".").split(/[\n\r,/]/);
-		// while(lines[y].length < N){ lines[y] = lines[y] + '.'; }
+		while(lines[y].length < N){ lines[y] = lines[y] + '.'; } ////
 		
 		lines[y] = lines[y].slice(0,x) + (state ? 'O' : '.') + lines[y].slice(x+1);
 		while(lines[y].length < N){ lines[y] = lines[y] + '.'; }
 		
-		fs.writeFileSync('board.txt', lines.join('\n'));
+		fs.writeFileSync('./boards/'+name+'.txt', lines.join('\n'));
 		console.log("new state saved");
 		
-		
-		// mscon.query('INSERT INTO changes(x,y,ts,ns) VALUES('+x+','+y+','+Math.round(Date.now()/1000)+','+state+')',
+		//@TODO! update schema to support multiple boards
 		mscon.query('INSERT INTO changes(x,y,ts,ns) VALUES('+x+','+y+','+Date.now()+','+state+')',
 		  function (err, result, fields) {
 			if (err) throw err;
-			// console.log(result);
+			console.log(result);
 		});
 	
 		
 		// response.setContentType("text/plain"); 
 		response.writeHead(200, {"Content-Type": "text/plain"});
 		response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); 
-		response.end(lines.join('\n')); //@todo eliminate redundant operation
+		response.end(lines.join('\n'));
 		console.log("data sent");
+	}
+    else if(path=="/setboard"){
+		let params = url.parse(request.url, true).query;
+        let name = (params.name || 'default').replace(/[/\\\.]/g,'');
+		console.log("update for board \""+name+"\" recieved");
+        let body = '';
+        request.on('data', chunk => {
+            body += chunk.toString(); // convert Buffer to string
+        });
+        // request.on('end', () => {
+            // response.end('ok');
+        // });
+        
+        // @todo figure out how to track this with db, and authentication???
+		
+		fs.writeFileSync('./boards/'+name+'.txt', body);
+		console.log("new state saved for "+name);
 	}
 	else{
 		fs.readFile('./index.html', function(err, file) {  
