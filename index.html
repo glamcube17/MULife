@@ -3,7 +3,7 @@
 <head> 
 	<meta charset='UTF-8'/>
     <html lang='en'>
-	<title>Game of Life Test</title>
+	<title>μLife</title>
 	
     <link rel='stylesheet' href='css/jquery-ui.css'>
 	<link rel='stylesheet' 
@@ -25,7 +25,14 @@
     -->
 	
 	<style>
-
+		html, body {
+			width: 100%;
+			height: 100%;
+			margin: 0px;
+			border: 0;
+			overflow: hidden; <!-- no scroll bars -->
+			display: block; <!-- no floating content on sides (?) -->
+		}
 	</style>
 	
 </head>
@@ -36,13 +43,14 @@
 <div class='container'>
 	<div class='titlebar'>
 
-		<h1 class='center-content'>Game of Life Test</h1>
+		<h1 class='center-content'>μLife</h1>
 		
-		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | a: Auto-step | -/=: Slow/speed auto-step rate</h4>
-		<h4 class='center-content'> r: Randomize board | C: Clear board | I: Invert board</h4>
-		<h4 class='center-content'> H: Toggle Life/HighLife</h4>
+		<h4 class='center-content'>LMouse: Toggle cell | Enter: 1-Step | Space: Auto-step | -/=: Slow/speed auto-step rate</h4>
+		<h4 class='center-content'>[]: Zoom | Arrow keys: Pan</h4>
 		<h4 class='center-content'> u: Toggle auto fetch from server</h4>
-		<h4 class='center-content'> n/N: Add/remove random noise</h4>
+		<h4 class='center-content'> r: Randomize board | C: Clear board | I: Invert board</h4>
+		<!-- <h4 class='center-content'> n/N: Add/remove random noise</h4> -->
+		<!-- <h4 class='center-content'> H: Toggle Life/HighLife</h4> -->
 		
 		<!-- <h4 class='center-content'>LMouse: Toggle cell | Enter: Toggle step | Space: 1-step | -/=: Slow/speed auto-step rate</h4> -->
 		
@@ -64,28 +72,23 @@
 			
 			</div>
 			
-			<!-- @todo I'm aware this is not how to do formatting -->
-			<!-- I'll do it properly later when I can be bothered to remember how -->
-			<br /><br /><br /><br /><br /><br />
-			<br /><br /><br /><br /><br /><br />
-			<br /><br /><br /><br /><br /><br />
-			<br /><br /><br /><br /><br /><br />
-			<br /><br /><br /><br /><br /><br />
-			<br />
-			<!-- <br /><br /><br /><br /><br /> -->
-			
 			<h4>S/B rules</h4>
 			<textarea name='survIO' id='survIO' cols='10' rows='1'>S: 23</textarea>
 			<textarea name='bornIO' id='bornIO' cols='10' rows='1'>B: 3</textarea>
 			<button onclick='setSBrules()'>Apply</button>
 			<br />
+			<br />
 			
+			<h4>save/load current board state with specified name</h4>
+			<button onclick='boardname = channelIO.value; postboard();'>Save</button>
+			<button onclick='boardname = channelIO.value; fetchupdate();'>Load</button>
+			name: <textarea name='channelIO' id='channelIO' cols='10' rows='1'>default</textarea>
+			<br />
+			<br />
 			<h4>copy/paste text to import/export board state</h4>
 			<button onclick='serialize()'>Export</button>
 			<button onclick='deserialize(textbox.value)'>Import</button>
-			<br />
-			<!-- <textarea name='iotextbox' id='iotextbox' cols='129' rows='16' onclick='this.select()'>63,63,.OO/OO./.O.</textarea> -->
-			<textarea name='iotextbox' id='iotextbox' cols='129' rows='16'>63,63,.OO/OO./.O.</textarea>
+			data: <textarea name='iotextbox' id='iotextbox' cols='16' rows='1'>63,63,.OO/OO./.O.</textarea>
 			
 		</div>
  	</div>
@@ -95,52 +98,71 @@
 </div>
 
 
-
 	<script>
-	//Don't see the need for this to be draggable and it was making the layout hard to actually format
-	<!-- $(".canvas-div").draggable( -->
-		<!-- { -->
-			<!-- containment: "parent", -->
-			<!-- //handle: "div", -->
-			<!-- cancel: "canvas" -->
-		<!-- } -->
-	<!-- ); -->
 	
 	var canvas = $("canvas")[0];
 	var context = canvas.getContext("2d");
 
 	context.save();
+	
+	let s = Math.min(window.innerWidth, window.innerHeight) * 0.8; //square
+	canvas.width  = s;
+	canvas.height = s;
 
-	context.fillStyle='white';
+	context.fillStyle='black';
 	context.fillRect(0,0,context.canvas.width, context.canvas.height);
 	
 	
 	var textbox = document.getElementById("iotextbox");
 	var survbox = document.getElementById("survIO");
 	var bornbox = document.getElementById("bornIO");
+	var chanbox = document.getElementById("channelIO");
 	textbox.contentEditable = "true";
 	survbox.contentEditable = "true";
 	bornbox.contentEditable = "true";
+	chanbox.contentEditable = "true";
+	
+	var boardname = channelIO.value;
+	
+	// "COLLABORATIVE web-based multi-user"
 	
 	
+	// @todo add nice-looking buttons to impress people / improve interface
+	// @todo add multiple colors
+	// @todo save initial state before stepping through?
+
+	// @todo save or load states to/from server with custom names
+	// @TODO multiple channels - create/join
+	
+	// @todo sync rules for each channel?
+	
+	// customizable base colors
+	
+	// web server
+	// paper
+	
+	// demo
+	// have it running on some computers and people can mess with it
 	
 	
 	const N = 128;
 	var cnt=0;
 	
 	var autoStepping = false;
-	var autoFetching = false;
+	var autoFetching = false; //true for prod
 	var autoStepRate = 0;
-	
-	var noiseRate = 0;
-	
-	var highLife = false;
 	
 	var surv = [2,3];
 	var born = [3];
 	
 	const celw = context.canvas.width/N;
 	const celh = context.canvas.height/N;
+	
+	var viewscl = 1.00;
+	var panX = 0; 
+	var panY = 0;
+	
+	var noiseRate = 0;
 	
 	context.restore();
 	
@@ -165,10 +187,11 @@
 	autoFetch();
 	
 	canvas.addEventListener("click", function(click){
-		let i = Math.floor( ( click.offsetX ) / celw );
-		let j = Math.floor( ( click.offsetY ) / celh );
-		postchange(i,j,!cells[i][j]);
+		let i = Math.floor( ( click.offsetX - panX ) / viewscl / celw );
+		let j = Math.floor( ( click.offsetY - panY ) / viewscl / celh );
 		setCell(i,j,!cells[i][j]);
+		redraw();
+		postchange(i,j,!cells[i][j]);
 	});
 	
 	
@@ -176,15 +199,16 @@
 		if(ev.ctrlKey || ev.altKey){return;}
 		switch(ev.key){
 		case "Enter":
-			<!-- autoStepping = !autoStepping; -->
-			<!-- break; -->
-		<!-- case " ": -->
-			doStep();
+			if(ev.shiftKey){
+				autoStepping = !autoStepping;
+			}else{
+				doStep();
+			}
 			break;
 		case "r": case "R":
-			randomizeBoard(Math.random());
+			randomizeBoard((Math.random()+0.3)/2);
 			break;
-		case "a": case "A":
+		case "a": case "A": case " ":
 			autoStepping = !autoStepping;
 			break;
 		case "=":
@@ -199,21 +223,96 @@
 		case "I":
 			invertBoard();
 			break;
-		case "H":
-			highLife = !highLife;
-			break;
 		case "u": case "U":
 			autoFetching = !autoFetching;
 			break;
-		case "n":
-			noiseRate = Math.min(100,noiseRate+1);
+		<!-- case "n": //@todo move this to a button or something -->
+			<!-- noiseRate = Math.min(100,noiseRate+1); -->
+			<!-- break; -->
+		<!-- case "N": -->
+			<!-- noiseRate = Math.max(0,noiseRate-1); -->
+			<!-- break; -->
+		case "[":
+			if(viewscl > 0.75){
+				panX -= s/2/viewscl; panY -= s/2/viewscl;
+				let absx = s-(s/2+panX/viewscl);
+				let absy = s-(s/2+panY/viewscl);
+				viewscl = Math.max( viewscl/1.1, 0.75 );
+				panX = (s - absx - s/2) * viewscl;
+				panY = (s - absy - s/2) * viewscl;
+				panX += s/2/viewscl; panY += s/2/viewscl;
+				redraw();
+			}
 			break;
-		case "N":
-			noiseRate = Math.max(0,noiseRate-1);
+		case "]":
+			if(viewscl < 10){
+				panX -= s/2/viewscl; panY -= s/2/viewscl;
+				let absx = s-(s/2+panX/viewscl);
+				let absy = s-(s/2+panY/viewscl);
+				viewscl = Math.min( viewscl*1.1, 10 );
+				panX = (s - absx - s/2) * viewscl;
+				panY = (s - absy - s/2) * viewscl;
+				panX += s/2/viewscl; panY += s/2/viewscl;
+				redraw();
+			}
+			break;
+		case "ArrowLeft": case "ArrowRight": case "ArrowUp": case "ArrowDown":
+			let absx = s-(s/2+panX/viewscl);
+			let absy = s-(s/2+panY/viewscl); 
+			textbox.value = absx;
+			switch(ev.key){
+				case "ArrowLeft":
+					if(absx >= 0){
+						panX += s/N*viewscl;
+					}
+					break;
+				case "ArrowRight":
+					if(absx <= s){
+						panX -= s/N*viewscl;
+					}
+					break;
+				case "ArrowUp":
+					if(absy >= 0){
+						panY += s/N*viewscl;
+					}
+					break;
+				case "ArrowDown":
+					if(absy <= s){
+						panY -= s/N*viewscl;
+					}
+					break;
+			}
+			redraw();
 			break;
 		}
 	});
 	
+	
+	
+	var redrawingFlag = 0; //to avoid wasting effort on multiple asynchronous redraws at once
+	function redraw(){
+		if(redrawingFlag++ > 0){ return; }
+		context.save();
+		context.fillStyle="#000000";
+		context.fillRect(0,0,s,s);
+		context.translate(panX,panY);
+		<!-- context.translate(s/2,s/2); -->
+		context.scale(viewscl,viewscl);
+		<!-- context.translate(-s/2,-s/2); -->
+		for(let i=0; i < N; i++){ 
+			for(let j=0; j < N; j++){
+				let isalive = ( !!(cells[i][j]) == true );
+				if(isalive){
+					context.fillStyle="#66ccff";
+				}else{
+					context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
+				}
+				context.fillRect(i*celw,j*celh,celw,celh);
+			}
+		}
+		context.restore();
+		--redrawingFlag;
+	}
 	
 	
 	
@@ -245,16 +344,24 @@
 				let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
 				cells[i][j] = isalive;
 				
-				if(isalive){
-					context.fillStyle="#66ccff";
-				}else if(wasalive && !autoStepping){
-					context.fillStyle="#993311";
-				}else{
-					context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
-				}
-				context.fillRect(i*celw,j*celh,celw,celh);
+				<!-- if(isalive){ -->
+					<!-- context.fillStyle="#66ccff"; -->
+				<!-- }else if(wasalive && !autoStepping){ -->
+					<!-- context.fillStyle="#993311"; -->
+				<!-- }else{ -->
+					<!-- context.fillStyle="#6611"+(4*(((i+j)%2)))+"1"; -->
+				<!-- } -->
+				<!-- context.fillRect(i*celw,j*celh,celw,celh); -->
 			}
 		}
+		<!-- <!-- fill outside board in black in case of zooming around leaving weirdness --> -->
+		<!-- context.fillStyle="#000000"; -->
+		<!-- context.fillRect(  -1*s, -1*s, 2*s, 1*s); //top edge -->
+		<!-- context.fillRect(  -1*s, -1*s, 1*s, 2*s); //left edge -->
+		<!-- context.fillRect(   1*s,  0*s, 1*s, 2*s); //right edge -->
+		<!-- context.fillRect(   0*s,  1*s, 2*s, 1*s); //bottom edge -->
+		
+		redraw();
 		
 		cnt++;
 		return;
@@ -277,10 +384,10 @@
 		while(true){
 			while(autoFetching){
 				await fetchupdate();
-				await sleep(1000);
+				await sleep(2000);
 			}
 			while(!autoFetching){
-				await sleep(1000);
+				await sleep(200);
 			}
 		}
 	}
@@ -305,6 +412,7 @@
 				setCell(i,j,( Math.random() > ratio ) );
 			}
 		}
+		redraw();
 	}
 	
 	function clearBoard(){
@@ -321,6 +429,7 @@
 				setCell(i,j,!cells[i][j]);
 			}
 		}
+		redraw();
 	}
 	
 	
@@ -336,7 +445,6 @@
 	
 	
 	
-	
 	function serialize(){
 		let str = "";
 		for(let j=0; j<N; j++){
@@ -348,6 +456,7 @@
 		textbox.value = str;
 		textbox.select();
 		document.execCommand("copy");
+		return str;
 	}
 	function deserialize(str){
 		<!-- let str = textbox.value; -->
@@ -391,41 +500,39 @@
 		born = [];
 		for(i = 0; i < survstr.length; i++){ surv.push(parseInt(survstr[i])); }
 		for(i = 0; i < bornstr.length; i++){ born.push(parseInt(bornstr[i])); }
-		console.log(surv);
-		console.log(born);
-		console.log(typeof(surv[0]));
 	}
 	
 	
 	
 	
 	function fetchupdate() {
-		xmlhttp = new XMLHttpRequest();
-		xmlhttp.open("GET","http://localhost:8001/getboard", true);
-		xmlhttp.onreadystatechange=function(){
-			if (xmlhttp.readyState==4 && xmlhttp.status==200){
-				string=xmlhttp.responseText;
+		xhr = new XMLHttpRequest();
+		xhr.open("GET","http://localhost:8001/getboard?name="+boardname, true);
+		xhr.onreadystatechange=function(){
+			if (xhr.readyState==4 && xhr.status==200){
+				string=xhr.responseText;
 				deserialize(string);
 				//@todo if timer expired, stop updating, lock changes, and start stepping through
 			}
 		}
-		xmlhttp.send();
+		xhr.send();
 	}
 	fetchupdate();
 	
 	
 	function postchange(x,y,state) {
-		xmlhttp = new XMLHttpRequest();
-		xmlhttp.open("POST","http://localhost:8001/changeboard?x="+x+"&y="+y+"&state="+state, true);
-		<!-- xmlhttp.writeHead(200, {"Content-Type": "text/plain"}); -->
-			<!-- if (xmlhttp.readyState==4 && xmlhttp.status==200){ -->
-				<!-- string=xmlhttp.responseText; -->
-				<!-- textbox.value = string; -->
-			<!-- } -->
-		<!-- } -->
-		<!-- xmlhttp.onreadystatechange=function(){ -->
-		xmlhttp.send();
-		<!-- xmlhttp.send('x='+x+'&y='+y+'&state='+state); -->
+		xhr = new XMLHttpRequest();
+		xhr.open("POST","http://localhost:8001/changeboard?x="+x+"&y="+y+"&state="+state+"&name="+boardname, true);
+		xhr.send();
+	}
+	
+	function postboard() {
+		xhr = new XMLHttpRequest();
+		xhr.open("POST","http://localhost:8001/setboard?name="+boardname, true);
+		xhr.setRequestHeader("Access-Control-Allow-Origin", "*"); 
+		xhr.setRequestHeader("Content-Type", "text/plain");
+		let data = serialize();
+		xhr.send(data);
 	}
 	
 	

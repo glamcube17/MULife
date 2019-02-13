@@ -1,0 +1,14 @@
+# Manually created
+
+*.pdb #very large files with detailed debugging/error reporting information - too big for github and not essential
+
+*.pem #mysql server keys
+*.sdi #logs (server/sql/schema? debug info)
+
+*.exe #yeah...
+
+*logfile* #large
+*undo* #large
+*ibdata* #large
+*ibtmp* #large
+*sys.dic #large, not sure what these do???
