@@ -3,9 +3,9 @@
 	margin: 0;
 }
 
-html, body {
-	height: 100%;
-}
+/* html, body { */
+	/* height: 100%; */
+/* } */
 
 .container {
 	min-height: 100%;
@@ -86,3 +86,84 @@ canvas{
     display: block;
 }
 		
+
+
+		
+		
+html, body {
+	width: 95%;
+	height: 95%;
+	margin: 0;
+	border: 0;
+	padding: 5px;
+	<!-- overflow: hidden; <!-- no scroll bars --> -->
+	display: block;
+	font-size: 125%;
+	font-family: Verdana, Geneva, sans-serif;
+}
+.row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 100%;
+}
+.column {
+	display: flex;
+	flex-direction: column;
+	flex-basis: 100%;
+	flex: 1;
+	padding: 0px 12px;
+}
+.button{
+	font-size: 70%;
+	display: inline-block;
+	text-align: center;
+	padding: 0px 12px;
+	margin: 2px 12px;
+	background-color: #4C50AF;
+	border: none;
+	color: white;
+	box-shadow: 0 4px #999;
+}
+.button:hover {background-color: #3e418e}
+.button:active {
+	background-color: #3e418e;
+	box-shadow: 0 2px #666;
+	transform: translateY(2px);
+}
+.field{
+	font-size: 150%;
+	resize: none;
+	overflow: auto;
+}
+.checkbox{
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+}
+
+
+		
+		
+table {
+	table-layout: fixed ;
+	width: 100% ;
+	overflow: hidden;
+}
+td {
+	padding: 4px 16px;
+	/* width: 25% ; */
+}
+
+
+table td:nth-child(odd) {
+	background-color: #cccccc;
+	text-align:right;
+}
+table td:nth-child(even) {
+	background-color: #444444;
+	color: #eeeeee;
+}
+
+
+

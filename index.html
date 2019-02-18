@@ -24,46 +24,9 @@
     <script type='text/javascript' src='javascript/ui.js'></script>
     -->
 	
-	<style>
-		html, body {
-			width: 95%;
-			height: 95%;
-			margin: 0;
-			border: 0;
-			padding: 5px;
-			<!-- overflow: hidden; <!-- no scroll bars --> -->
-			display: block;
-			font-size: 125%;
-			font-family: Verdana, Geneva, sans-serif;
-		}
-		.row {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			width: 100%;
-		}
-		.column {
-			display: flex;
-			flex-direction: column;
-			flex-basis: 100%;
-			flex: 1;
-		}
-		.button{
-			font-size: 70%;
-			display: inline-block;
-			text-align: center;
-			padding: 0px 12px;
-			margin: 2px 12px;
-			background-color: #4C50AF;
-			border: none;
-			color: white;
-		}
-		.field{
-			font-size: 150%;
-			resize: none;
-			overflow: auto;
-		}
-	</style>
+	<!-- <style> -->
+		
+	<!-- </style> -->
 	
 </head>
 
@@ -77,7 +40,8 @@
 			<div class='stretch'>
 				<div class='stretch-container' style='flex:2'>
 					<div class='canvas-div'>
-						<canvas id='life-canvas' height='128' width='128'>
+						<!-- <canvas id='life-canvas' height='128' width='128'> -->
+						<canvas id='life-canvas'>
 								Oops! Canvas not supported. Try Firefox!
 						</canvas>
 						
@@ -90,45 +54,134 @@
 			<div class='titlebar'>
 
 				<h1 class='center-content'>μLife</h1>
-				<h4 class='center-content'>LMouse: Toggle cell | r: Randomize board | C: Clear board | I: Invert board</h4>
-				<h4 class='center-content'>Enter: 1-Step | Space: Auto-step | -/=: Slow/speed auto-step rate</h4>
-				<h4 class='center-content'>[]: Zoom | Arrow keys: Pan</h4>
-				<h4 class='center-content'>u: Toggle server sync</h4>
-				<!-- <h4 class='center-content'> n/N: Add/remove random noise</h4> -->
-				<!-- <h4 class='center-content'> H: Toggle Life/HighLife</h4> -->
+				<!-- <h6 class='center-content'>LR Mouse: Toggle cell | Shift+LR Mouse: Color pick</h6> -->
+				<!-- <h6 class='center-content'>R: Randomize | C: Clear | i: Reset to initial state</h6> -->
+				<!-- <h6 class='center-content'>Enter: 1-Step | Space: Run/Pause | =/-: Speed up/down</h6> -->
+				<!-- <h6 class='center-content'>[]: Zoom | Arrow keys: Pan</h6> -->
+				<!-- <h6 class='center-content'>u: Toggle server sync</h6> -->
+				<!-- <table style='width:100%; padding: 2px 8px; background-color:#cccccc'> -->
+				<!-- <table style='width:100%; padding: 2px 8px;'> -->
 				
-				<!-- <h4 class='center-content'>LMouse: Toggle cell | Enter: Toggle step | Space: 1-step | -/=: Slow/speed auto-step rate</h4> -->
+				<!-- <h4 class='center-content'> n/N: Add/remove random noise</h4> -->
+				
 			</div>
 			<br />
-				<!-- <input type="checkbox" name="highLifeCheckbox" value="HighLife" />HighLife -->
 			<div class='row'>
-				<div class='column' style='flex:0.5'>
+				<div class='column' style='flex:0.3'>
 					<div class='container' style='background-color:inherit'>
-						<h4>Survive/Born rules</h4>
-						<textarea class='field' name='sbIO' id='sbIO' cols='16' rows='1' placeholder='S 23/B 3'>23/3</textarea>
+						<h5>Survive/Born rules</h5>
+						<textarea class='field' name='sbIO' id='sbIO' cols='17' rows='1' placeholder='S 23/B 3'>23/3</textarea>
 						<div class='row'>
-						<button class='button' class='column' onclick='setSBrules()'>Apply</button>
+							<button class='button' class='column' onclick='setSBrules()'>Apply</button>
+							<button class='button' class='column' onclick='rulebox.value=("23/3"); setSBrules()'>Default</button>
+							<button class='button' class='column' onclick='randomizeRules();'>Random</button>
 						</div>
-						<br />
+						<p><br /></p>
 						
-						<h4>Save/Load current board</h4>
-						<textarea class='field' name='channelIO' id='channelIO' cols='16' rows='1' placeholder='board name'></textarea>
+						<h5>Board size</h5>
+						<textarea class='field' name='sizeIO' id='sizeIO' cols='17' rows='1' placeholder='128x128'>128x128</textarea>
 						<div class='row'>
-						<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; postboard();'>Save</button>
-						<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchupdate();'>Load</button>
+							<button class='button' class='column' onclick='setSBrules()'>Apply</button>
+							<button class='button' class='column' onclick='sizebox.value=("128x128"); setSBrules()'>Default</button>
+							<button class='button' class='column' onclick='randomizeRules();'>Random</button>
 						</div>
-						<br />
+						<p><br /></p>
 						
-						<h4>Import/Export plaintext</h4>
-						<textarea class='field' name='iotextbox' id='iotextbox' cols='16' rows='1' placeholder='serialized data' onclick='textbox.select();'></textarea>
+						<h5>Paint States</h5>
+						<textarea class='field' name='paintIO' id='paintIO' cols='17' rows='1' placeholder='1/2'>1/2</textarea>
 						<div class='row'>
-						<button class='button' class='column' onclick='deserialize(textbox.value)'>Import</button>
-						<button class='button' class='column' onclick='textbox.value = serialize()'>Export</button>
+							<button class='button' class='column' onclick='setPaintStates()'>Apply</button>
+							<button class='button' class='column' onclick='paintbox.value=("1/2"); setPaintStates()'>Default</button>
+							<button class='button' class='column' onclick='paintbox.value=(Math.random()*numLiveStates+"/"+Math.random()*numLiveStates);setPaintStates()'>Random</button>
+						</div>
+						
+						<h5>Save/Load board</h5>
+						<textarea class='field' name='channelIO' id='channelIO' cols='17' rows='1' placeholder='board name'></textarea>
+						<div class='row'>
+							<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; postboard();'>Save</button>
+							<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchupdate(); autoStepping=false;'>Load</button>
+							<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchboardlist();'>List</button>
+						</div>
+						<p><br /></p>
+						
+						<h5>Import/Export plaintext</h5>
+						<textarea class='field' name='iotextbox' id='iotextbox' cols='17' rows='1' placeholder='serialized data' onclick='textbox.select();'></textarea>
+						<div class='row'>
+							<button class='button' class='column' onclick='deserialize(textbox.value)'>Import</button>
+							<button class='button' class='column' onclick='textbox.value = serialize()'>Export</button>
+						</div>
+						<p><br /></p>
+						
+						<div class='row'>
+							<input type='checkbox' class='checkbox' id='syncCheckbox' onclick='autoFetching = synccheckbox.checked;'/>&nbsp;Sync
 						</div>
 					</div>
 				</div>
 				<div class='column'>
-					
+					<table>
+						<tr>
+							<th>Editing</th>
+						</tr><tr>
+							<td>LMB/RMB</td>
+							<td>Toggle cell</td>
+						</tr><tr>
+							<td>Shift+L/RMB</td>
+							<td>Color pick</td>
+						</tr><tr>
+							<td>i</td>
+							<td>Initial state</td>
+						</tr><tr>
+							<td>R</td>
+							<td>Random State</td>
+						</tr><tr>
+							<td>C</td>
+							<td>Clear State</td>
+						</tr><tr>
+							<th>Simulation</th>
+						</tr><tr>
+							<td>Space</td>
+							<td>Start/Pause</td>
+						</tr><tr>
+							<td>Enter</td>
+							<td>1-step</td>
+						</tr><tr>
+							<td>-/=</td>
+							<td>Speed down/up</td>
+						</tr><tr>
+							<th>Viewport</th>
+						</tr><tr>
+							<td>Arrow Keys</td>
+							<td>Pan</td>
+						</tr><tr>
+							<td>[/]</td>
+							<td>Zoom Out/In</td>
+						</tr>
+					</table>
+				</div>
+				<!-- <div class='column' style='flex:0.10'> -->
+				<!-- </div> -->
+			</div>
+			<p><br /></p>
+			<div class='row'>
+				<div class='column'>
+					<h6 id='readout_step'>Generation 0 (Initial State)</h6>
+					<h6 id='readout_speed'>Paused</h6>
+					<h6 id='readout_zoom'>100%</h6>
+					<!-- <h6 id='readout_pan'>Pan: 0,0</h6> -->
+					<h6 id='readout_cursor'>Cursor: ?,?</h6>
+					<h6 id='readout_state'>State of cell at cursor: 0</h6>
+				</div>
+				<div class='column' style='font-size:75%;'>
+					<h4>About</h4>
+					<p>Conway's Game of Life is a cellular automaton in which each generation determines the 
+					state of the generation after it according to simple rules:</p>
+					<br />
+					<ul><li>If a live cell has 2 or 3 neighbors, it "survives" in the next generation.</li>
+					<li>If a dead cell has 3 neighbors, a live cell is "born" there in the next generation.</li>
+					<li>Thus, the state at each generation is determined by the initial state.</li></ul>
+					<br />
+					<p>μLife is a tool designed to allow anyone to play around with Conway's Game of Life 
+					and its variants and collaborate with others to experiment together.</p>
 				</div>
 			</div>
 				
@@ -144,7 +197,7 @@
 
 	context.save();
 	
-	let s = Math.min(window.innerWidth, window.innerHeight) * 0.95; //square
+	let s = Math.min(window.innerWidth, window.innerHeight) * 0.95 - 10; //square
 	canvas.width  = s;
 	canvas.height = s;
 
@@ -155,29 +208,35 @@
 	var textbox = document.getElementById("iotextbox");
 	var chanbox = document.getElementById("channelIO");
 	var rulebox = document.getElementById("sbIO");
-	<!-- var survbox = document.getElementById("survIO"); -->
-	<!-- var bornbox = document.getElementById("bornIO"); -->
+	var paintbox= document.getElementById("paintIO");
 	textbox.contentEditable = "true";
 	chanbox.contentEditable = "true";
 	rulebox.contentEditable = "true";
-	<!-- survbox.contentEditable = "true"; -->
-	<!-- bornbox.contentEditable = "true"; -->
+	paintbox.contentEditable ="true";
 	
-	var boardname = channelIO.value || 'default';
+	var readout_speed = document.getElementById("readout_speed");
+	var readout_step = document.getElementById("readout_step");
+	var readout_zoom = document.getElementById("readout_zoom");
+	<!-- var readout_pan = document.getElementById("readout_pan"); -->
+	var readout_cursor = document.getElementById("readout_cursor");
+	var readout_state = document.getElementById("readout_state");
+
+	var synccheckbox= document.getElementById("syncCheckbox");
+	
+	var boardname = chanbox.value || 'default';
 	
 	// "COLLABORATIVE web-based multi-user"
 	
 	
-	// @todo add nice-looking buttons to impress people / improve interface
-	// @todo add multiple colors
-	// @todo save initial state before stepping through?
+	//  add nice-looking buttons to impress people / improve interface
+	//  add multiple colors
+	//  save initial state before stepping through
 
-	// @todo save or load states to/from server with custom names
-	// @TODO multiple channels - create/join
+	//  save or load states to/from server with custom names
+	//  multiple channels - create/join
 	
-	// @todo sync rules for each channel?
+	//  sync rules for each channel
 	
-	// customizable base colors
 	
 	// web server
 	// paper
@@ -185,6 +244,7 @@
 	// demo
 	// have it running on some computers and people can mess with it
 	
+	//@todo save whether each board is set to be collaborative or not -> default auto-sync
 	
 	const N = 128;
 	var cnt=0;
@@ -192,14 +252,39 @@
 	var autoStepping = false;
 	var autoFetching = false; //true for prod
 	var autoStepRate = 0;
+	var colormode = true;
+	
+	var numLiveStates = 9;
+	function getStateColor(s){
+		switch(''+s){
+			case '0': return '#661111';
+			case '1': return '#66ccff';
+			case '2': return '#ffff66';
+		}
+		let n = parseInt(s) + 3;
+		//deterministically generate color for each state
+		let rgb = hsl2rgb( 14.29*5*(n+1) % 360, 1.0, 0.6 - n%3/3/5);
+		let c = rgb2hex(rgb[0],rgb[1],rgb[2]);
+		return c;
+	}
+	// input: h in [0,360] and s,v in [0,1] - output: r,g,b in [0,1]
+	function hsl2rgb(h,s,l){
+		let a=s*Math.min(l,1-l);
+		let f= (n,k=(n+h/30)%12) => l - a*Math.max(Math.min(k-3,9-k,1),-1);
+		return [f(0),f(8),f(4)];
+	}
+	// r,g,b are in [0-1], result e.g. #0812fa.
+	var rgb2hex = (r,g,b) => "#" + [r,g,b].map( x=>Math.round(x*255).toString(16).padStart(2,0) ).join('');
 	
 	var surv = [2,3];
 	var born = [3];
+	var paintLeft = 1;
+	var paintRight = 2;
 	
-	const celw = context.canvas.width/N;
-	const celh = context.canvas.height/N;
+	var celw = context.canvas.width/N;
+	var celh = context.canvas.height/N;
 	
-	var viewscl = 1.00;
+	var zoom = 1.00;
 	var panX = 0; 
 	var panY = 0;
 	
@@ -214,7 +299,7 @@
 	for(let i=0; i<N; i++){
 		let row = [];
 		for(let j=0; j<N; j++){
-			row.push(false);
+			row.push(0);
 		}
 		cells.push(row);
 		row = [];
@@ -227,16 +312,46 @@
 	autoStep();
 	autoFetch();
 	
-	canvas.addEventListener("click", function(click){
-		let i = Math.floor( ( click.offsetX - panX ) / viewscl / celw );
-		let j = Math.floor( ( click.offsetY - panY ) / viewscl / celh );
-		setCell(i,j,!cells[i][j]);
-		redraw();
-		if(autoFetching){ //syncing
-			postchange(i,j,!cells[i][j]);
+	canvas.addEventListener("mousedown", function(ev){
+		let i = Math.floor( ( ev.offsetX - panX ) / zoom / celw );
+		let j = Math.floor( ( ev.offsetY - panY ) / zoom / celh );
+		let keycode = ( ev.keyCode ? ev.keyCode : ev.which ); //1: left; 3: right
+		if(keycode == 1 || keycode == 3){
+			if(!ev.shiftKey){
+				let newState = (!cells[i][j] ? (keycode == 1 ? paintLeft : paintRight) : 0);
+				setCell(i,j,newState);
+				redraw();
+				if(autoFetching){ //syncing
+					postchange(i,j, newState);
+				}
+				cnt = 0; //new initial state
+				autoStepping = false;
+				if(keycode == 1){ paintingLeft = true; }else{ paintingRight = true; }
+			}else{ //color pick
+				let st = cells[i][j];
+				let text = (' '+paintbox.value+' ').split('/');
+				if(keycode == 1){ paintbox.value = st+'/'+text[1].trim(); }
+				else{             paintbox.value = text[0].trim()+'/'+st; }
+				setPaintStates();
+			}
 		}
 	});
+	canvas.addEventListener("contextmenu", function(ev){ //prevent context menu
+		ev.preventDefault(); ev.stopPropagation();
+	});
+	canvas.addEventListener("click", function(ev){
+		ev.preventDefault(); ev.stopPropagation(); return false;
+	});
 	
+	canvas.addEventListener("wheel", function(ev){
+		if(ev.deltaY > 0){ //scrolling down
+			ev.preventDefault();
+			zoomOut();
+		}else if(ev.deltaY < 0){ //scrolling up
+			ev.preventDefault();
+			zoomIn();
+		}
+	});
 	
 	addEventListener("keydown", function(ev){
 		if(ev.ctrlKey || ev.altKey){return;}
@@ -249,12 +364,12 @@
 				doStep();
 			}
 			break;
-		case "r": case "R":
+		<!-- case "r":  -->
+		case "R":
 			randomizeBoard((Math.random()+0.6)/2);
 			break;
-		case " ":
+		case " ": //spacebar
 			ev.preventDefault(); //prevent space scrolling down
-		<!-- case "a": case "A": -->
 			autoStepping = !autoStepping;
 			break;
 		case "=":
@@ -266,11 +381,17 @@
 		case "C":
 			clearBoard();
 			break;
-		case "I":
-			invertBoard();
-			break;
-		case "u": case "U":
-			autoFetching = !autoFetching;
+		<!-- case "I": -->
+			<!-- invertBoard(); -->
+			<!-- break; -->
+		<!-- case "u": case "U": -->
+			<!-- autoFetching = !autoFetching; -->
+			<!-- break; -->
+		case "i": case "I":
+			if(initialstate){
+				deserialize(initialstate);
+				if(!ev.shiftKey){ autoStepping = false; }
+			}
 			break;
 		<!-- case "n": //@todo move this to a button or something -->
 			<!-- noiseRate = Math.min(100,noiseRate+1); -->
@@ -279,103 +400,175 @@
 			<!-- noiseRate = Math.max(0,noiseRate-1); -->
 			<!-- break; -->
 		case "[":
-			if(viewscl > 0.75){
-				panX -= s/2/viewscl; panY -= s/2/viewscl;
-				let absx = s-(s/2+panX/viewscl);
-				let absy = s-(s/2+panY/viewscl);
-				viewscl = Math.max( viewscl/1.1, 0.75 );
-				panX = (s - absx - s/2) * viewscl;
-				panY = (s - absy - s/2) * viewscl;
-				panX += s/2/viewscl; panY += s/2/viewscl;
-				redraw();
-			}
+			zoomOut();
 			break;
 		case "]":
-			if(viewscl < 10){
-				panX -= s/2/viewscl; panY -= s/2/viewscl;
-				let absx = s-(s/2+panX/viewscl);
-				let absy = s-(s/2+panY/viewscl);
-				viewscl = Math.min( viewscl*1.1, 10 );
-				panX = (s - absx - s/2) * viewscl;
-				panY = (s - absy - s/2) * viewscl;
-				panX += s/2/viewscl; panY += s/2/viewscl;
-				redraw();
-			}
+			zoomIn();
 			break;
 		case "ArrowLeft": case "ArrowRight": case "ArrowUp": case "ArrowDown":
 			ev.preventDefault(); //prevent window from scrolling
-			let absx = s-(s/2+panX/viewscl);
-			let absy = s-(s/2+panY/viewscl); 
+			let dmul = (ev.shiftKey ? 11 : 1);
+			let lft =      0 - panX/zoom;
+			let top =      0 - panY/zoom;
+			let rgt = s/zoom - panX/zoom;
+			let btm = s/zoom - panY/zoom;
 			switch(ev.key){
 				case "ArrowLeft":
-					if(absx >= 0){
-						panX += s/N*viewscl;
+					if(lft >= -s/4){
+						panX += s/N*zoom * dmul;
 					}
 					break;
 				case "ArrowRight":
-					if(absx <= s){
-						panX -= s/N*viewscl;
+					if(rgt <= s+s/4){
+						panX -= s/N*zoom * dmul;
 					}
 					break;
 				case "ArrowUp":
-					if(absy >= 0){
-						panY += s/N*viewscl;
+					if(top >= -s/4){
+						panY += s/N*zoom * dmul;
 					}
 					break;
 				case "ArrowDown":
-					if(absy <= s){
-						panY -= s/N*viewscl;
+					if(btm <= s+s/4){
+						panY -= s/N*zoom * dmul;
 					}
 					break;
 			}
 			redraw();
 			break;
 		}
+		updateReadout();
 	});
 	
 	window.addEventListener("resize", ()=>{
-		let s = Math.min(window.innerWidth, window.innerHeight) * 0.95; //square
+		let s = Math.min(window.innerWidth, window.innerHeight) * 0.95 - 10; //square
 		canvas.width  = s;
 		canvas.height = s;
+		celw = s/N; celh = s/N;
 		redraw();
 	});
+	
+	var mousex = null;
+	var mousey = null;
+	var mouseIn = false;
+	var paintingLeft = false;
+	var paintingRight = false;
+	canvas.addEventListener('mousemove', onMouseUpdate, false);
+	<!-- canvas.addEventListener('mouseenter', onMouseUpdate, false); -->
+	function onMouseUpdate(e) {
+		mousex = e.offsetX;
+		mousey = e.offsetY;
+		if(paintingLeft || paintingRight){
+			let i = Math.floor( ( e.offsetX - panX ) / zoom / celw );
+			let j = Math.floor( ( e.offsetY - panY ) / zoom / celh );
+			let newState = (paintingLeft?paintLeft:paintRight);
+			setCell(i,j,newState);
+			redraw();
+			if(autoFetching){ //syncing
+				postchange(i,j, newState);
+			}
+			cnt = 0; //new initial state
+			autoStepping = false;
+		}
+		redraw();
+	}
+	canvas.addEventListener('mouseenter', ()=>{ mouseIn = true; paintingLeft=false; paintingRight=false; }, false);
+	canvas.addEventListener('mouseleave', ()=>{ mouseIn = false; paintingLeft=false; paintingRight=false; redraw(); }, false);
+	canvas.addEventListener('mouseup', ()=>{ paintingLeft = false; paintingRight = false; } );
 	
 	var redrawingFlag = 0; //to avoid wasting effort on multiple asynchronous redraws at once
 	function redraw(){
 		if(redrawingFlag++ > 0){ return; }
 		context.save();
-		context.fillStyle="#000000";
-		context.fillRect(0,0,s,s);
+		context.clearRect(0,0,s,s);
 		context.translate(panX,panY);
-		<!-- context.translate(s/2,s/2); -->
-		context.scale(viewscl,viewscl);
-		<!-- context.translate(-s/2,-s/2); -->
+		context.scale(zoom,zoom);
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < N; j++){
-				let isalive = ( !!(cells[i][j]) == true );
+				let isalive = !!(cells[i][j]);
 				if(isalive){
-					context.fillStyle="#66ccff";
+					context.fillStyle=getStateColor(cells[i][j]);
 				}else{
-					context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
+					context.fillStyle=["#661141","#661111"][(i+j)%2];
 				}
+				<!-- context.fillRect((s+i*celw+panX)%s,(s+j*celh+panY)%s,celw,celh); //wrap view -->
 				context.fillRect(i*celw,j*celh,celw,celh);
 			}
 		}
+		
+		if(mouseIn){
+			let I = Math.floor((mousex - panX )/zoom/celw); let J = Math.floor((mousey - panY)/zoom/celh);
+			if(I >= 0 && I < N && J >= 0 && J < N){
+				let st = cells[I][J];
+				context.fillStyle = '#f0f0f0';
+				context.fillRect(I*celw,J*celh,celw,celh);
+				context.fillStyle = getStateColor(st);
+				context.fillRect(I*celw+celw*0.1,J*celh+celh*0.1,celw*0.8,celh*0.8);
+			}
+		}
+		
 		context.restore();
 		--redrawingFlag;
 	}
 	
+	function updateReadout(){
+		let speedstr = (autoStepRate > 0 ? '<'+Math.round(1000/autoStepRate*10)/10 : 'MAX')+' steps/second';
+		readout_speed.textContent = (autoStepping ? 'Simulating at '+speedstr : 'Paused');
+		readout_speed.style.color = (autoStepping ? '#000000' : '#888888');
+		readout_step.textContent  = (cnt > 0 ? 'Generation '+cnt : 'Generation 0 (Initial State)');
+		readout_zoom.textContent  = 'Zoom: ' + Math.round(zoom*100) + '%';
+		readout_zoom.style.color = (zoom != 1 ? '#000000' : '#888888');
+		<!-- readout_pan.textContent  = 'Pan: ' + Math.floor((s/2 - panX)/zoom/celw) + ', ' + Math.floor((s/2 - panY)/zoom/celh); -->
+		let I = Math.floor((mousex - panX )/zoom/celw); let J = Math.floor((mousey - panY)/zoom/celh);
+		readout_cursor.textContent  = 'Cursor: ' + I + ', ' + J;
+		if(mouseIn && I >= 0 && I < N && J >= 0 && J < N){
+			readout_state.textContent  = 'State of cell at cursor: ' + cells[I][J];
+			readout_state.style.color  = (parseInt(cells[I][J]) > 0 ? '#000000' : '#888888');
+		}else{
+			readout_state.textContent  = 'State of cell at cursor: ';
+			readout_state.style.color  = '#888888';
+		}
+	}
 	
 	
+	function zoomOut(){
+		if(zoom > 0.75){
+			panX -= s/2; panY -= s/2;
+			let absx = s-(s/2+panX/zoom);
+			let absy = s-(s/2+panY/zoom);
+			zoom = Math.max( zoom/1.1, 0.75 );
+			panX = (s/2 - absx) * zoom;
+			panY = (s/2 - absy) * zoom;
+			panX += s/2; panY += s/2;
+			redraw();
+		}
+	}
+	function zoomIn(){
+		if(zoom < 10){
+			panX -= s/2; panY -= s/2;
+			let absx = s-(s/2+panX/zoom);
+			let absy = s-(s/2+panY/zoom);
+			zoom = Math.min( zoom*1.1, 10 );
+			panX = (s/2 - absx) * zoom;
+			panY = (s/2 - absy) * zoom;
+			panX += s/2; panY += s/2;
+			redraw();
+		}
+	}
+	
+	
+	var initialstate = null;
 	//Step through the state
 	function doStep(){
+		if(cnt === 0){ initialstate = serialize(); }
+		
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < N; j++){
 				let neighborcount = 0;
 				//count neighbors
 				for(let I = -1; I < 2; I++){
 					for(let J = -1; J < 2; J++){
-						if( (I!=0||J!=0) && ( cells[(N+i+I)%N][(N+j+J)%N] === true ) ){
+						if( (I!=0||J!=0) && ( !!( cells[(N+i+I)%N][(N+j+J)%N] ) === true ) ){
 							neighborcount++;
 						}
 					}
@@ -386,14 +579,43 @@
 		
 		if(noiseRate > 0 && cnt%(101-noiseRate)==0){addNoise();}
 		
+		let oldcells = new Array(cells.length);
+		for(let i=0; i<cells.length; ++i){
+			oldcells[i] = cells[i].slice(0);
+		}
+			
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < N; j++){
-				let wasalive = ( cells[i][j] == true );
+				let wasalive = !!cells[i][j];
 				let neighbors = cellneighbors[i][j];
-				<!-- let isalive = !!( neighbors == 3 || ( neighbors == 2 && wasalive ) || highLife && neighbors == 6 ); -->
-				<!-- let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( $.inArray(neighbors, born)!==-1 ); -->
 				let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
-				cells[i][j] = isalive;
+				if(!colormode){
+					cells[i][j] = isalive;
+				}else{
+					if(isalive){
+						//find state with most occurrences
+						let states = {};
+						for(let I = -1; I <= 1; I++){
+							for(let J = -1; J <= 1; J++){
+								let st = oldcells[(N+i+I)%N][(N+j+J)%N]; //state index
+								if(st > 0){
+									states[st] = states[st] ? states[st]+1 : 1; //state count
+								}
+							}
+						}
+						let index, max = 0;
+						for(const [k, v] of Object.entries(states)) {
+							if(v > max || v == max && Math.random() < 0.5){
+								max = v;
+								index = k;
+							}
+						}
+						if(!index){ index = 1+Math.round(Math.random()*numLiveStates); }
+						cells[i][j] = index; //max value
+					}else{
+						cells[i][j] = 0;
+					}
+				}
 				
 				<!-- if(isalive){ -->
 					<!-- context.fillStyle="#66ccff"; -->
@@ -405,14 +627,9 @@
 				<!-- context.fillRect(i*celw,j*celh,celw,celh); -->
 			}
 		}
-		<!-- <!-- fill outside board in black in case of zooming around leaving weirdness --> -->
-		<!-- context.fillStyle="#000000"; -->
-		<!-- context.fillRect(  -1*s, -1*s, 2*s, 1*s); //top edge -->
-		<!-- context.fillRect(  -1*s, -1*s, 1*s, 2*s); //left edge -->
-		<!-- context.fillRect(   1*s,  0*s, 1*s, 2*s); //right edge -->
-		<!-- context.fillRect(   0*s,  1*s, 2*s, 1*s); //bottom edge -->
 		
 		redraw();
+		updateReadout();
 		
 		cnt++;
 		return;
@@ -427,6 +644,7 @@
 			}
 			while(!autoStepping){
 				await sleep(autoStepRate+1);
+				updateReadout();
 			}
 		}
 	}
@@ -448,11 +666,14 @@
 	
 	function setCell(i,j,state){
 		if(i >= N || j >= N || i < 0 || j < 0){ return; }
-		cells[i][j] = state;
-		if(state === true){
-			context.fillStyle="#66ccff";
+		cells[i][j] = parseInt(state);
+		<!-- if(!!state === true){ -->
+		if(!!state){
+			<!-- context.fillStyle="#66ccff"; -->
+			<!-- context.fillStyle=statecolors[state-1]; -->
+			context.fillStyle=getStateColor(state);
 		}else{
-			context.fillStyle="#6611"+(4*(((i+j)%2)))+"1";
+			context.fillStyle=["#661141","#661111"][(i+j)%2];
 		}
 		context.fillRect(i*celw,j*celh,celw,celh);
 	}
@@ -460,36 +681,42 @@
 	function randomizeBoard(ratio){
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < N; j++){
-				setCell(i,j,( Math.random() < ratio ) );
+				if(Math.random() < ratio){ setCell(i,j,0); }
+				else{ setCell(i,j, Math.round(Math.random()*numLiveStates)); }
 			}
 		}
+		cnt=0;
 		redraw();
 	}
 	
 	function clearBoard(){
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < N; j++){
-				setCell(i,j,false);
+				setCell(i,j,0);
 			}
 		}
-	}
-	
-	function invertBoard(){
-		for(let i = 0; i < N; i++){
-			for(let j = 0; j < N; j++){
-				setCell(i,j,!cells[i][j]);
-			}
-		}
+		cnt=0;
+		autoStepping = false;
 		redraw();
 	}
 	
+	<!-- function invertBoard(){ -->
+		<!-- for(let i = 0; i < N; i++){ -->
+			<!-- for(let j = 0; j < N; j++){ -->
+				<!-- setCell(i,j,!cells[i][j]); -->
+			<!-- } -->
+		<!-- } -->
+		<!-- redraw(); -->
+		<!-- cnt = 0; -->
+	<!-- } -->
 	
-	function addNoise(){
-		let num = Math.floor(Math.random()*Math.pow(noiseRate,0.5));
-		let x = Math.floor(Math.random()*N);
-		let y = Math.floor(Math.random()*N);
-		setCell(x,y,true);
-	}
+	
+	<!-- function addNoise(){ -->
+		<!-- let num = Math.floor(Math.random()*Math.pow(noiseRate,0.5)); -->
+		<!-- let x = Math.floor(Math.random()*N); -->
+		<!-- let y = Math.floor(Math.random()*N); -->
+		<!-- setCell(x,y,true); -->
+	<!-- } -->
 	
 	
 	function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -500,34 +727,31 @@
 		let str = "";
 		for(let j=0; j<N; j++){
 			for(let i=0; i<N; i++){
-				str = str + ( cells[i][j] ? "O":"." );
+				<!-- str = str + ( cells[i][j] ? "O":"." ); -->
+				str = str + ( cells[i][j].toString(36) );
 			}
 			str = str + '\n';
 		}
-		<!-- textbox.value = str; -->
-		<!-- textbox.select(); -->
-		<!-- document.execCommand("copy"); -->
 		return str;
 	}
 	function deserialize(str){
 		let i0 = 0; let j0 = 0;
-		<!-- if(str.split(',').length > 1){ -->
-			<!-- i0 = Number(str.split(',')[0]); -->
-			<!-- j0 = Number(str.split(',')[1]); -->
-			<!-- str = str.split(',')[2]; -->
-		<!-- } -->
-		
 		let c = 0; let C = Math.min(str.length, (N-i0)*(N-j0));
 		let i = i0; let j = j0; let c0 = 0;
 		if(str[0] == '\n'){ c0 = 1; }
 		for(c = c0; c < C; c++){
 			switch(str[c]){
-				case 'O':
-					setCell(i,j,true);
+				case '.': case '0':
+					setCell(i,j,0);
 					i++;
 					break;
-				case '.':
-					setCell(i,j,false);
+				case '1': case 'O':
+					setCell(i,j,1);
+					i++;
+					break;
+				case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+					<!-- setCell(i,j,2); -->
+					setCell(i,j,parseInt(str[c]));
 					i++;
 					break;
 				case '\n': case '/': case ',':
@@ -537,21 +761,44 @@
 				case ' ':
 					i++;
 					break;
+				setCell(i,j,parseInt(str[c],36)); i++; //base-36 for 0-9 + a-z
 			}
 			
 		}
+		updateReadout();
+		redraw();
+		cnt=0;
 	}
 	
 	function setSBrules(){
 		let sb = (' '+rulebox.value.replace(/[^\d\/]/g,'')+' ').split('/');
-		<!-- let survstr = survbox.value.replace(/[^\d]/g,''); -->
-		<!-- let bornstr = bornbox.value.replace(/[^\d]/g,''); -->
 		let survstr = sb[0];
 		let bornstr = sb[1];
 		surv = [];
 		born = [];
 		for(i = 0; i < survstr.length; i++){ surv.push(parseInt(survstr[i])); }
 		for(i = 0; i < bornstr.length; i++){ born.push(parseInt(bornstr[i])); }
+	}
+	
+	function setPaintStates(){
+		let st = (' '+paintbox.value.replace(/[^\d\/]/g,'')+' ').split('/');
+		paintLeft = parseInt(st[0]);
+		paintRight = parseInt(st[1]);
+	}
+	
+	function randomizeRules(){
+		let survstr = '';
+		let bornstr = '';
+		for(i = 0; i < 10; i++){
+			if(Math.random() < 0.2){
+				survstr += i;
+			}
+			if(Math.random() < 0.2){
+				bornstr += i;
+			}
+		}
+		rulebox.value = survstr + '/' + bornstr;
+		setSBrules();
 	}
 	
 	
@@ -562,14 +809,10 @@
 		xhr.open("GET","http://localhost:8001/getboard?name="+boardname, true);
 		xhr.onreadystatechange=function(){
 			if (xhr.readyState==4 && xhr.status==200){
-				<!-- let params = url.parse(xhr.url, true).query; -->
-				<!-- let str = xhr.responseText; -->
 				let data = JSON.parse(xhr.responseText);
 				console.log(data);
 				let str = data.state.join('\n');
 				rulebox.value = data.survive + '/' + data.born;
-				<!-- survbox.value = data.survive; -->
-				<!-- bornbox.value = data.born; -->
 				deserialize(str);
 				setSBrules();
 				//@todo if timer expired, stop updating, lock changes, and start stepping through
@@ -577,6 +820,7 @@
 		}
 		xhr.send();
 	}
+	clearBoard();
 	fetchupdate();
 	
 	
@@ -589,9 +833,24 @@
 	function postboard() {
 		xhr = new XMLHttpRequest();
 		xhr.open("POST","http://localhost:8001/setboard?name="+boardname, true);
-		<!-- let data = serialize(); -->
-		let data = JSON.stringify( { "name":boardname, "survive":surv.toString, "born":born.toString, "state":serialize().split('\n') } );
+		let survstr = ''; for(let i = 0; i < surv.length; i++){ if(!isNaN(parseInt(surv[i]))){survstr += surv[i];} }
+		let bornstr = ''; for(let i = 0; i < born.length; i++){ if(!isNaN(parseInt(born[i]))){bornstr += born[i];} }
+		let data = JSON.stringify( { "name":boardname, "survive":survstr, "born":bornstr, "state":serialize().split('\n') } );
 		xhr.send(data);
+	}
+	
+	function fetchboardlist() {
+		xhr = new XMLHttpRequest();
+		xhr.open("GET","http://localhost:8001/listboards", true);
+		xhr.onreadystatechange=function(){
+			if (xhr.readyState==4 && xhr.status==200){
+				let data = JSON.parse(xhr.responseText);
+				console.log(data);
+				let str = data.boards.join(', ');
+				alert(str);
+			}
+		}
+		xhr.send();
 	}
 	
 	

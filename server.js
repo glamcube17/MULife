@@ -36,13 +36,22 @@ http.createServer(function(request, response){
         let name = (params.name || 'default').replace(/[/\\\.]/g,'');
 		console.log("request for "+name+" board state recieved");
 		// var data = fs.readFileSync("./board.txt");
-		var data = fs.readFileSync("./boards/"+name+".txt");
-		// var data = json.parse( fs.readFileSync("./boards/"+name+".txt") );
-		// console.log("Synchronous read: \n" + data.toString());
-		response.writeHead(200, {"Content-Type": "text/json"});
-		response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); 
-		response.end(data);
-		console.log("data sent");
+        let data;
+        try{
+            data = fs.readFileSync("./boards/"+name+".txt");
+        }catch(e){
+            // if(e.code === 'ENOENT'){
+            let lines = new Array(N);
+            for(let i = 0; i < N; i++){
+                lines[i] = '0'.repeat(N);
+            }
+            data = JSON.stringify({'name':name,'survive':'23','born':'3','state':lines});
+            console.log("no such file, creating blank canvas");
+        }
+        response.writeHead(200, {"Content-Type": "text/json"});
+        response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); 
+        response.end(data);
+        console.log("data sent");
 	}
 	else if(path=="/changeboard"){
 		let params = url.parse(request.url, true).query;
@@ -51,7 +60,7 @@ http.createServer(function(request, response){
 		// console.log(params);
 		let x = parseInt(params.x);
 		let y = parseInt(params.y);
-		let state = (params.state == "true");
+		let state = params.state;
 		console.log("changing cell at x="+x+",y="+y+" to "+state);
 		let data = JSON.parse( fs.readFileSync('./boards/'+name+'.txt').toString('UTF-8') );
 		// console.log(data);
@@ -59,8 +68,9 @@ http.createServer(function(request, response){
 		let lines = data.state;
 		while(lines[y].length < N){ lines[y] = lines[y] + '.'; } ////
 		
-		lines[y] = lines[y].slice(0,x) + (state ? 'O' : '.') + lines[y].slice(x+1);
-		while(lines[y].length < N){ lines[y] = lines[y] + '.'; }
+		// lines[y] = lines[y].slice(0,x) + (state ? 'O' : '.') + lines[y].slice(x+1);
+		lines[y] = lines[y].slice(0,x) + (state) + lines[y].slice(x+1);
+		while(lines[y].length < N){ lines[y] = lines[y] + '0'; }
         while(lines.length < N){ lines = lines + [ lines[lines.length-1] ]; }
 		
 		// fs.writeFileSync('./boards/'+name+'.txt', lines.join('\n'));
@@ -105,11 +115,18 @@ http.createServer(function(request, response){
         });
         response.writeHead(200, {"Content-Type": "text/json"});
 		response.writeHead(200, {"Access-Control-Allow-Origin": "*" }); //trying to get cors to work
-        
         // @todo figure out how to track this with db, and authentication???
-		
-		
 	}
+    else if(path=="/listboards"){
+        let files = fs.readdirSync('./boards');
+        for(let i=0; i<files.length; i++) {
+            files[i] = files[i].split('.')[0];
+        }
+        console.log(files);
+        response.writeHead(200, {"Content-Type": "text/json"});
+		response.writeHead(200, {"Access-Control-Allow-Origin": "*" });
+        response.end( JSON.stringify({ "boards":files }) );
+    }
 	else{
 		fs.readFile('./index.html', function(err, file) {  
 			if(err) {  
