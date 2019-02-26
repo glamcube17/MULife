@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
-<html>
+<html lang='en'>
 <head> 
 	<meta charset='UTF-8'/>
-    <html lang='en'>
+    <!-- <html lang='en'> -->
 	<title>μLife</title>
 	
     <link rel='stylesheet' href='css/jquery-ui.css'>
@@ -67,63 +67,149 @@
 			</div>
 			<br />
 			<div class='row'>
-				<div class='column' style='flex:0.3'>
+				<div class='column' id='controlcolumn' style='flex:0.3'>
 					<div class='container' style='background-color:inherit'>
 						<h5>Survive/Born rules</h5>
 						<textarea class='field' name='sbIO' id='sbIO' cols='17' rows='1' placeholder='S 23/B 3'>23/3</textarea>
 						<div class='row'>
-							<button class='button' class='column' onclick='setSBrules()'>Apply</button>
-							<button class='button' class='column' onclick='rulebox.value=("23/3"); setSBrules()'>Default</button>
-							<button class='button' class='column' onclick='randomizeRules();'>Random</button>
+							<button class='button column' onclick='setSBrules()'>Apply</button>
+							<button class='button column' onclick='rulebox.value=("23/3"); setSBrules()'>Default</button>
+							<button class='button column' onclick='randomizeRules();'>Random</button>
 						</div>
 						<p><br /></p>
 						
 						<h5>Board size</h5>
 						<textarea class='field' name='sizeIO' id='sizeIO' cols='17' rows='1' placeholder='128x128'>128x128</textarea>
 						<div class='row'>
-							<button class='button' class='column' onclick='setSBrules()'>Apply</button>
-							<button class='button' class='column' onclick='sizebox.value=("128x128"); setSBrules()'>Default</button>
-							<button class='button' class='column' onclick='randomizeRules();'>Random</button>
+							<button class='button column' onclick='unpadBoard(); setBoardSize(); recenterBoard(); resetViewport(); setInitialState();'>Apply</button>
+							<button class='button column' onclick='unpadBoard(); sizebox.value=("128x128"); setBoardSize(); recenterBoard(); resetViewport(); setInitialState();'>Default</button>
+							<button class='button column' onclick='unpadBoard(); randomizeSize(); recenterBoard(); resetViewport();'>Random</button>
+						</div>
+						<p><br /></p>
+						<div class='row'>
+							<label class='switch'>
+								<input type='checkbox' class='checkbox' checked  id='wrapCheckbox' onclick='setWrap(); cnt=0; autoStep=false;'/>
+								<span class='slider round'></span>
+							</label>
+							&nbsp;Wrap Edges
+						</div>
+						<div id='wrapxydiv' style='display:none'>
+							<div class='row'>
+								<input type='checkbox' class='checkbox' checked  id='wrapXCheckbox' onclick='setWrap(); cnt=0; autoStep=false;'/>&nbsp;Wrap X&nbsp;
+								<input type='checkbox' class='checkbox' checked  id='wrapYCheckbox' onclick='setWrap(); cnt=0; autoStep=false;'/>&nbsp;Wrap Y
+							</div>
 						</div>
 						<p><br /></p>
 						
 						<h5>Paint States</h5>
-						<textarea class='field' name='paintIO' id='paintIO' cols='17' rows='1' placeholder='1/2'>1/2</textarea>
+						<textarea class='field' name='paintIO' id='paintIO' cols='17' rows='1' placeholder='1/2' style='display:none'>1/2</textarea>
+						<!-- <div class='row'> -->
+							<!-- <button class='button column' onclick='setPaintStates()'>Apply</button> -->
+							<!-- <button class='button column' onclick='paintbox.value=("1/2"); setPaintStates()'>Default</button> -->
+							<!-- <button class='button column' onclick='paintbox.value=(Math.round(Math.random()*numLiveStates)+"/"+Math.round(Math.random()*numLiveStates));setPaintStates()'>Random</button> -->
+						<!-- </div> -->
+						<table class='palettetable' id='painttable'>
+							<tr style='padding: 12px 12px; font-size:150%'> <td></td><td></td> </tr>
+						</table>
+						<table class='palettetable' id='palettetable'>
+							<tr> <td></td><td></td><td></td><td></td><td></td><td></td> </tr>
+							<tr> <td></td><td></td><td></td><td></td><td></td><td></td> </tr>
+							<tr> <td></td><td></td><td></td><td></td><td></td><td></td> </tr>
+							<tr> <td></td><td></td><td></td><td></td><td></td><td></td> </tr>
+							<tr> <td></td><td></td><td></td><td></td><td></td><td></td> </tr>
+							<tr> <td></td><td></td><td></td><td></td><td></td><td></td> </tr>
+						</table>
 						<div class='row'>
-							<button class='button' class='column' onclick='setPaintStates()'>Apply</button>
-							<button class='button' class='column' onclick='paintbox.value=("1/2"); setPaintStates()'>Default</button>
-							<button class='button' class='column' onclick='paintbox.value=(Math.random()*numLiveStates+"/"+Math.random()*numLiveStates);setPaintStates()'>Random</button>
+							<h6>Palette:&nbsp</h6>
+							<select id='paletteselect' style='font-size:80%' onchange='palette = paletteselect.value; setPaletteTableColors(); redraw();'>
+								<option value='μLife Standard'>μLife Standard</option>
+								<option value='μLife Classic'>μLife Classic</option>
+								<option value='μLife Vibrant'>μLife Vibrant</option>
+								<option value='Rainbow'>Rainbow</option>
+								<option value='Black&White'>Black&amp;White</option>
+								<option value='Mono Yellow'>Mono Yellow</option>
+								<option value='Mono Red'>Mono Red</option>
+								<option value='Dolphin'>Dolphin</option>
+								<option value='Vocal'>Vocal</option>
+								<option value='Harmony'>Harmony</option>
+								<option value='Trollian'>Trollian</option>
+								<option value='Alternia'>Alternia</option>
+								<option value='Traffic CA'>Traffic CA</option>
+							</select>
 						</div>
+						
+						
+						
+						<p><br /></p>
 						
 						<h5>Save/Load board</h5>
 						<textarea class='field' name='channelIO' id='channelIO' cols='17' rows='1' placeholder='board name'></textarea>
 						<div class='row'>
-							<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; postboard();'>Save</button>
-							<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchupdate(); autoStepping=false;'>Load</button>
-							<button class='button' class='column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchboardlist();'>List</button>
+							<button class='button column' onclick='boardname = channelIO.value.replace("/","_") || "default"; postboard();'>Save</button>
+							<button class='button column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchupdate(); autoStepping=false;'>Load</button>
+							<button class='button column' onclick='boardname = channelIO.value.replace("/","_") || "default"; fetchboardlist();'>List</button>
+						</div>
+						<div class='row'>
+							<a href="" id="outputfile"></a>
+							<input type="file" style="display:none;" id="inputfile" />
+							<button class='button column' onclick='localSavePrompt(serialize_mcl(),boardname+".mcl","text/plain");'>Save As</button>
+							<button class='button column' onclick='localLoadPrompt();'>Choose File</button>
 						</div>
 						<p><br /></p>
 						
-						<h5>Import/Export plaintext</h5>
-						<textarea class='field' name='iotextbox' id='iotextbox' cols='17' rows='1' placeholder='serialized data' onclick='textbox.select();'></textarea>
+						<div id='importexportdiv' style='display:none'>
+							<h5>Import/Export plaintext</h5>
+							<textarea class='field' name='iotextbox' id='iotextbox' cols='17' rows='1' placeholder='serialized data' onclick='textbox.select();'></textarea>
+							<div class='row'>
+								<button class='button column' onclick='deserialize(textbox.value)'>Import</button>
+								<button class='button column' onclick='textbox.value = serialize()'>Export</button>
+							</div>
+							<p><br /></p>
+						</div>
+						
 						<div class='row'>
-							<button class='button' class='column' onclick='deserialize(textbox.value)'>Import</button>
-							<button class='button' class='column' onclick='textbox.value = serialize()'>Export</button>
+							<label class='switch'>
+								<input type='checkbox' class='checkbox' id='syncCheckbox' onclick='autoFetching = synccheckbox.checked;'/>
+								<span class='slider round'></span>
+							</label>
+							&nbsp;Sync
+						</div>
+						
+						<div id='edgestatediv' style='display:none'>
+							<h5>Edge State</h5>
+							<textarea class='field' name='edgeIO' id='edgeIO' cols='17' rows='1' placeholder='0'>0</textarea>
+							<div class='row'>
+								<button class='button column' onclick='edgestate = parseInt(edgebox.value) || 0; cnt=0;'>Apply</button>
+								<button class='button column' onclick='edgebox.value="0"; edgestate = parseInt(edgebox.value) || 0; cnt=0;'>Default</button>
+								<button class='button column' onclick='edgebox.value = Math.round(Math.random()*(1+numLiveStates)); edgestate = parseInt(edgebox.value) || 0; cnt=0;'>Random</button>
+							</div>
 						</div>
 						<p><br /></p>
 						
+						<p><br /></p>
 						<div class='row'>
-							<input type='checkbox' class='checkbox' id='syncCheckbox' onclick='autoFetching = synccheckbox.checked;'/>&nbsp;Sync
+							<div class='column'>
+								<h6 id='readout_step'>Initial State</h6>
+								<h6 id='readout_speed'>Paused</h6>
+								<h6 id='readout_zoom'>100%</h6>
+								<!-- <h6 id='readout_pan'>Pan: 0,0</h6> -->
+								<h6 id='readout_cursor'>Cursor: ?,?</h6>
+								<h6 id='readout_state'>State of cell at cursor: 0</h6>
+							</div>
 						</div>
+						
 					</div>
 				</div>
-				<div class='column'>
-					<table>
+				<div class='column' id='infocolumn'>
+					<table class='controlstable'>
 						<tr>
 							<th>Editing</th>
 						</tr><tr>
 							<td>LMB/RMB</td>
 							<td>Toggle cell</td>
+						</tr><tr>
+							<td>L/RMB+Drag</td>
+							<td>Paint cells</td>
 						</tr><tr>
 							<td>Shift+L/RMB</td>
 							<td>Color pick</td>
@@ -145,45 +231,75 @@
 							<td>Enter</td>
 							<td>1-step</td>
 						</tr><tr>
-							<td>-/=</td>
-							<td>Speed down/up</td>
+							<td>Shift + +/-</td>
+							<td>Speed Up/Down</td>
 						</tr><tr>
 							<th>Viewport</th>
 						</tr><tr>
-							<td>Arrow Keys</td>
+							<td>Arrows,WASD</td>
 							<td>Pan</td>
 						</tr><tr>
-							<td>[/]</td>
-							<td>Zoom Out/In</td>
+							<td>Shift+Pan</td>
+							<td>Pan Faster</td>
+						</tr><tr>
+							<td>+/-</td>
+							<td>Zoom In/Out</td>
+						</tr><tr>
+							<td>0</td>
+							<td>Reset Viewport</td>
 						</tr>
 					</table>
+					<h4><br /></h4>
+					<!-- <button class='button' class='column' onclick="showabout = !showabout; document.getElementById('aboutdiv').style.display = (showabout ? 'block' : 'none');">About</button> -->
+					<div class='row'>
+						<button class='button column tablink button_on' onclick='switchTab(event,"aboutTab");'>About</button>
+						<button class='button column tablink' onclick='switchTab(event,"extrasTab");'>Extras</button>
+					</div>
+					<div class='tabcontainer'>
+						<div class='tab' id='extrasTab'>
+							<h4>Extras</h4>
+							<h5>Editing</h5>
+							<div class='row'>
+								<button class='button column' onclick='shiftBoardPrompt();'>Shift Board</button>
+								<button class='button column' onclick='recenterBoard();'>Center Pattern</button>
+								<button class='button column' onclick='fillCircle();'>Fill Circle</button>
+								<button class='button column' onclick='replaceColor();'>Replace States</button>
+								<button class='button column' onclick='clearBoard(); seedBoard();'>Seed Cells</button>
+							</div>
+							<h5>Analysis</h5>
+							<div class='row'>
+								<button class='button column' onclick='alert("Number of cells with each state:\n"+countCells())'>Count Cells</button>
+								<!-- <button class='button column' onclick='importexportdiv.style.display="block"; textbox.value=serialize(); textbox.select(); document.execCommand("copy"); importexportdiv.style.display=(showimportexport?"block":"none"); alert("plaintext copied to clipboard");'>Export as Plaintext</button> -->
+								<!-- <button class='button column' onclick='deserialize(prompt("Paste previously copied plaintext state:"));'>Import from Plaintext</button> -->
+								<!-- <button class='button column' onclick='importexportdiv.style.display="block"; textbox.value=serialize_mcl(); textbox.select(); document.execCommand("copy"); importexportdiv.style.display=(showimportexport?"block":"none"); alert(".mcl copied to clipboard");'>Export as .mcl</button> -->
+								<!-- <button class='button column' onclick='deserialize_mcl(prompt("Paste previously copied .mcl file:"));'>Import from .mcl</button> -->
+								<button class='button column' onclick='recolorLiveCells();'>Randomly Colorize Cells</button>
+							</div>
+							<h5>Just For Fun</h5>
+							<div class='row'>
+								<!-- <button class='button' class='column' onclick='messWithIt();'>Shuffle Board</button> -->
+								<button class='button column' id='chaosButton' onclick='toggleChaos();'>CHAOS CHAOS</button>
+							</div>
+						</div>
+						<div class='tab' id='aboutTab' style='font-size:75%; display:block;'>
+							<h4 style='font-size:133%'>About</h4>
+							<p>Conway's Game of Life is a cellular automaton in which each generation determines the 
+							state of the generation after it according to simple rules:</p>
+							<br />
+							<ul><li>If a live cell has 2 or 3 neighbors, it "survives".</li>
+							<li>If a dead cell has 3 neighbors, a live cell is "born" there.</li>
+							<li>Thus, the state at each generation is determined by the initial state.</li>
+							<li><a href=http://psoup.math.wisc.edu/mcell/rullex_life.html>Examples of variant rules</a></li></ul>
+							<br />
+							<p>μLife is a tool designed to allow anyone to play around with Conway's Game of Life 
+							and its variants and collaborate with others to experiment together.</p>
+						</div>
+					</div>
 				</div>
 				<!-- <div class='column' style='flex:0.10'> -->
 				<!-- </div> -->
 			</div>
-			<p><br /></p>
-			<div class='row'>
-				<div class='column'>
-					<h6 id='readout_step'>Generation 0 (Initial State)</h6>
-					<h6 id='readout_speed'>Paused</h6>
-					<h6 id='readout_zoom'>100%</h6>
-					<!-- <h6 id='readout_pan'>Pan: 0,0</h6> -->
-					<h6 id='readout_cursor'>Cursor: ?,?</h6>
-					<h6 id='readout_state'>State of cell at cursor: 0</h6>
-				</div>
-				<div class='column' style='font-size:75%;'>
-					<h4>About</h4>
-					<p>Conway's Game of Life is a cellular automaton in which each generation determines the 
-					state of the generation after it according to simple rules:</p>
-					<br />
-					<ul><li>If a live cell has 2 or 3 neighbors, it "survives" in the next generation.</li>
-					<li>If a dead cell has 3 neighbors, a live cell is "born" there in the next generation.</li>
-					<li>Thus, the state at each generation is determined by the initial state.</li></ul>
-					<br />
-					<p>μLife is a tool designed to allow anyone to play around with Conway's Game of Life 
-					and its variants and collaborate with others to experiment together.</p>
-				</div>
-			</div>
+			
 				
 		</div>
 	</div>
@@ -197,22 +313,29 @@
 
 	context.save();
 	
+	var N = 128;
+	var M = 128;
+	
 	let s = Math.min(window.innerWidth, window.innerHeight) * 0.95 - 10; //square
-	canvas.width  = s;
-	canvas.height = s;
+	let sx = (N < M ? s*N/M : s);
+	let sy = (M < N ? s*M/N : s);
+	canvas.width  = sx;
+	canvas.height = sy;
 
-	context.fillStyle='black';
-	context.fillRect(0,0,context.canvas.width, context.canvas.height);
-	
-	
 	var textbox = document.getElementById("iotextbox");
 	var chanbox = document.getElementById("channelIO");
 	var rulebox = document.getElementById("sbIO");
+	var sizebox = document.getElementById("sizeIO");
 	var paintbox= document.getElementById("paintIO");
+	var edgebox= document.getElementById("edgeIO");
 	textbox.contentEditable = "true";
 	chanbox.contentEditable = "true";
 	rulebox.contentEditable = "true";
+	sizebox.contentEditable = "true";
 	paintbox.contentEditable ="true";
+	edgebox.contentEditable ="true";
+	
+	var paletteselect = document.getElementById("paletteselect");
 	
 	var readout_speed = document.getElementById("readout_speed");
 	var readout_step = document.getElementById("readout_step");
@@ -222,20 +345,26 @@
 	var readout_state = document.getElementById("readout_state");
 
 	var synccheckbox= document.getElementById("syncCheckbox");
+	var wrapcheckbox= document.getElementById("wrapCheckbox");
+	var wrapxcheckbox= document.getElementById("wrapXCheckbox");
+	var wrapycheckbox= document.getElementById("wrapYCheckbox");
+	var showabout = true;
+	var importexportdiv = document.getElementById("importexportdiv");
+	var showimportexport = false;
 	
 	var boardname = chanbox.value || 'default';
 	
 	// "COLLABORATIVE web-based multi-user"
 	
 	
-	//  add nice-looking buttons to impress people / improve interface
-	//  add multiple colors
-	//  save initial state before stepping through
+	//  x add nice-looking buttons to impress people / improve interface
+	//  x add multiple colors
+	//  x save initial state before stepping through
 
-	//  save or load states to/from server with custom names
+	//  x save or load states to/from server with custom names
 	//  multiple channels - create/join
 	
-	//  sync rules for each channel
+	//  x sync rules for each channel
 	
 	
 	// web server
@@ -246,26 +375,123 @@
 	
 	//@todo save whether each board is set to be collaborative or not -> default auto-sync
 	
-	const N = 128;
-	var cnt=0;
+	// @todo refactor this nightmare
+	
+	// @todo? wireworld
+	// x save as .mcl format
+	// save as other formats?
+	
+	// @todo multiple color palettes
+	
+	
+	var cnt=0; //generation counter
 	
 	var autoStepping = false;
 	var autoFetching = false; //true for prod
 	var autoStepRate = 0;
-	var colormode = true;
 	
-	var numLiveStates = 9;
-	function getStateColor(s){
-		switch(''+s){
-			case '0': return '#661111';
-			case '1': return '#66ccff';
-			case '2': return '#ffff66';
+	var colormode = true; //@todo obsolete?
+	
+	
+	var numLiveStates = 35; //max to generate when randomizing and such
+	const maxStates = 36; //number of states which current implementation can handle storing as 1 character each
+	const maxLiveState = maxStates - 1;
+	var palette = 'μLife Standard';
+	function getStateColor(st){
+		let n = parseInt(st); let h; let s; let l; let rgb; let hex;
+		if(n <= 0){ return getBackgroundColor(0,0); }
+		let t = ((n-1)%numLiveStates)/numLiveStates;
+		switch(palette.toLowerCase()){
+			case 'vocal': //vocaloid colors
+				//miku, luka, rin, gumi, kaito, meiko
+				h = [174,341, 59,102,240, 40][(n-1)%6];
+				s = [1.0,1.0,1.0,1.0,1.0,0.4][(n-1)%6];
+				l = [0.6,0.6,0.6,0.6,0.6,0.4][(n-1)%6];
+				rgb = hsl2rgb( h, s, l - l/2*(Math.floor(n/5))/(numLiveStates/5) );
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'harmony': //mane 6 colors
+				h = [ 283, 199, 334,  55, 204,  34][(n-1)%6];
+				s = [0.56,0.87,0.78,0.95,0.15,0.96][(n-1)%6];
+				l = [0.76,0.80,0.84,0.84,0.94,0.69][(n-1)%6];
+				rgb = hsl2rgb( h, s, l - l/2*(Math.floor(n/6))/(numLiveStates/6) );
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'trollian': //light theme
+				//     AA   AT   TA   CG   AC   GA   GC   AG   CT   TC   CA   CC
+				h = [   0,  30,  60,   0,  82, 150, 180, 200, 240, 270, 300, 330][(n-1)%12];
+				s = [1.00,0.98,1.00,0.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00][(n-1)%12];
+				l = [0.24,0.38,0.18,0.38,0.20,0.25,0.25,0.25,0.17,0.17,0.21,0.23][(n-1)%12];
+				//l=[0.38,0.38,0.32,0.38,0.20,0.25,0.25,0.25,0.17,0.17,0.21,0.23][(n-1)%12];
+				rgb = hsl2rgb( h, s, 1.5*l - l*(Math.floor(n/12))/(numLiveStates/12) );
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'alternia': //dark theme
+				//     AA   AT   TA   CG   AC   GA   GC   AG   CT   TC   CA   CC
+				h = [   0,  30,  60,   0,  82, 150, 180, 200, 240, 270, 300, 330][(n-1)%12];
+				s = [1.00,0.98,1.00,0.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00][(n-1)%12];
+				l = [0.24,0.24,0.13,0.38,0.20,0.25,0.25,0.25,0.17,0.17,0.21,0.23][(n-1)%12];
+				rgb = hsl2rgb( h, s, 2*l + l*(Math.floor(n/12))/(numLiveStates/12) );
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'rainbow': //rainbow
+				rgb = hsl2rgb( 360*t, 1.0, 0.6);
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'mono yellow': //mono yellow value-spectrum
+				rgb = hsl2rgb( 60, 1.00, 0.1+0.9*(1-t));
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'mono red': //mono red value-spectrum
+				rgb = hsl2rgb( 0, 1.00, 0.1+0.9*(1-t));
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'black&white': //mono white value-spectrum
+				rgb = hsl2rgb( 0, 0.00, 0.1+0.9*(1-t));
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'dolphin': //blue on white
+				rgb = hsl2rgb( 240 - 60*t, 1.00, 0.5 + 0.1*t);
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'traffic ca': //red yellow and green
+				rgb = hsl2rgb( 130*t, 1.00, 0.6);
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'μlife classic':
+				<!-- switch(n){ -->
+					<!-- case 0: return '#661111'; -->
+					<!-- case 1: return '#66ccff'; -->
+					<!-- case 2: return '#ffff66'; -->
+				<!-- } -->
+				h = [190, 60, 130, 215, 290, 0][(n-1)%6];
+				l = 0.6 - 0.3*(1-(1-t)**3);
+				rgb = hsl2rgb( h, 1.0, l);
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
+			case 'μlife vibrant':
+				rgb = hsl2rgb( (0 + 60*(n-1))%360, 1.0, 0.6 - 0.3*(1-(1-t)**2));
+				hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+				return hex;
 		}
-		let n = parseInt(s) + 3;
-		//deterministically generate color for each state
-		let rgb = hsl2rgb( 14.29*5*(n+1) % 360, 1.0, 0.6 - n%3/3/5);
-		let c = rgb2hex(rgb[0],rgb[1],rgb[2]);
-		return c;
+		//μLife Standard / default
+		<!-- rgb = hsl2rgb( (0 + 60*(n-1))%360, 1.0, 0.6 - 0.3*(1-(1-t)**2)); -->
+		h = [190, 60, 130, 215, 290, 0][(n-1)%6];
+		l = 0.6 - 0.3*(1-(1-t)**3);
+		rgb = hsl2rgb(h, 1.0, l);
+		hex = rgb2hex(rgb[0],rgb[1],rgb[2]);
+		return hex;
+	}
+	function getBackgroundColor(i,j){
+		switch(palette.toLowerCase()){
+			case 'μlife classic':
+				return ["#661141","#661111"][(i+j)%2];
+			case 'dolphin':
+			case 'trollian':
+				return ["#ffffff","#ffffff"][(i+j)%2];
+		}
+		// μLife Standard / default
+		return ["#111111","#141414"][(i+j)%2];
 	}
 	// input: h in [0,360] and s,v in [0,1] - output: r,g,b in [0,1]
 	function hsl2rgb(h,s,l){
@@ -276,13 +502,64 @@
 	// r,g,b are in [0-1], result e.g. #0812fa.
 	var rgb2hex = (r,g,b) => "#" + [r,g,b].map( x=>Math.round(x*255).toString(16).padStart(2,0) ).join('');
 	
+	
+	function setPaletteTableColors(){
+		let tbl = document.getElementById('palettetable');
+		let cells = tbl.getElementsByTagName('td');
+		for(let i = 0; i < numLiveStates+1; i++){
+			let s = ((i+1)%(numLiveStates+1));
+			cells[i].innerHTML = s;
+			cells[i].style.backgroundColor = getStateColor(s);
+			cells[i].style.color = ( s === 0 ? '#888888' : getBackgroundColor(i,0) );
+		}
+		//give each cell a function to set the paint color when clicked
+		for (let i=0; i < tbl.rows.length; i++) {
+			for (var j = 0; j < tbl.rows[i].cells.length; j++){
+				tbl.rows[i].cells[j].onmousedown = function(ev){
+					let keycode = ( ev.keyCode ? ev.keyCode : ev.which ); //1: left; 3: right
+					if(keycode == 1 || keycode == 3){
+						let st = this.innerHTML;
+						let text = (' '+paintbox.value+' ').split('/');
+						if(keycode == 1){ paintbox.value = st+'/'+text[1].trim(); }
+						else{             paintbox.value = text[0].trim()+'/'+st; }
+						setPaintStates();
+					}
+				};
+				tbl.rows[i].cells[j].onclick = function(ev){ ev.preventDefault(); ev.stopPropagation(); return false; };
+				tbl.rows[i].cells[j].oncontextmenu = function(ev){ ev.preventDefault(); ev.stopPropagation(); ev.cancelBubble = true; return false; };
+				tbl.rows[i].cells[j].onmouseup = function(ev){ ev.preventDefault(); ev.stopPropagation(); ev.cancelBubble = true; return false; };
+			}
+		}
+	}
+	setPaletteTableColors();
+	setPaintStates();
+	
+	function switchTab(ev,tabId){
+		let tabs = document.getElementsByClassName('tab');
+		for(let i = 0; i < tabs.length; i++) {
+			tabs[i].style.display = "none"; 
+		}
+		document.getElementById(tabId).style.display = "block";
+		let tablinks = document.getElementsByClassName('tablink');
+		for(let i = 0; i < tablinks.length; i++) {
+			tablinks[i].className = tablinks[i].className.replace(" button_on", "");
+		}
+		ev.currentTarget.className += " button_on";
+	}
+	
+	
 	var surv = [2,3];
 	var born = [3];
+	var wrap = true;
+	var wrapx = true;
+	var wrapy = true;
+	var edgestate = 0;
+	
 	var paintLeft = 1;
 	var paintRight = 2;
 	
 	var celw = context.canvas.width/N;
-	var celh = context.canvas.height/N;
+	var celh = context.canvas.height/M;
 	
 	var zoom = 1.00;
 	var panX = 0; 
@@ -293,17 +570,17 @@
 	context.restore();
 	
 	//initialize state
+	// cells[N][M], cells[width][height], cells[i][j]
 	var cells = [];
 	var cellneighbors = [];
-	
 	for(let i=0; i<N; i++){
 		let row = [];
-		for(let j=0; j<N; j++){
+		for(let j=0; j<M; j++){
 			row.push(0);
 		}
 		cells.push(row);
 		row = [];
-		for(let j=0; j<N; j++){
+		for(let j=0; j<M; j++){
 			row.push(0);
 		}
 		cellneighbors.push(row);
@@ -318,13 +595,15 @@
 		let keycode = ( ev.keyCode ? ev.keyCode : ev.which ); //1: left; 3: right
 		if(keycode == 1 || keycode == 3){
 			if(!ev.shiftKey){
-				let newState = (!cells[i][j] ? (keycode == 1 ? paintLeft : paintRight) : 0);
+				let paintState = (keycode == 1 ? paintLeft : paintRight);
+				let newState = (cells[i][j] !== paintState ? paintState : 0);
 				setCell(i,j,newState);
 				redraw();
 				if(autoFetching){ //syncing
 					postchange(i,j, newState);
 				}
-				cnt = 0; //new initial state
+				<!-- cnt = 0; //new initial state -->
+				setInitialState();
 				autoStepping = false;
 				if(keycode == 1){ paintingLeft = true; }else{ paintingRight = true; }
 			}else{ //color pick
@@ -366,17 +645,26 @@
 			break;
 		<!-- case "r":  -->
 		case "R":
-			randomizeBoard((Math.random()+0.6)/2);
+			<!-- randomizeBoard((Math.random()+0.6)/2); -->
+			randomizeBoard(Math.random());
 			break;
 		case " ": //spacebar
 			ev.preventDefault(); //prevent space scrolling down
 			autoStepping = !autoStepping;
 			break;
-		case "=":
-			autoStepRate = Math.max(0,autoStepRate-10);
+		case "=": case "+":
+			if(ev.shiftKey){
+				autoStepRate = Math.max(0,autoStepRate-10);
+			}else{
+				zoomIn();
+			}
 			break;
-		case "-":
-			autoStepRate = Math.min(1000,autoStepRate+10);
+		case "-": case "_":
+			if(ev.shiftKey){
+				autoStepRate = Math.min(1000,autoStepRate+10);
+			}else{
+				zoomOut();
+			}
 			break;
 		case "C":
 			clearBoard();
@@ -391,6 +679,7 @@
 			if(initialstate){
 				deserialize(initialstate);
 				if(!ev.shiftKey){ autoStepping = false; }
+				redraw();
 			}
 			break;
 		<!-- case "n": //@todo move this to a button or something -->
@@ -405,34 +694,39 @@
 		case "]":
 			zoomIn();
 			break;
+		case "0":
+			resetViewport();
+			break;
 		case "ArrowLeft": case "ArrowRight": case "ArrowUp": case "ArrowDown":
+		case "a": case "d": case "w": case "s":
+		case "A": case "D": case "W": case "S":
 			ev.preventDefault(); //prevent window from scrolling
 			let dmul = (ev.shiftKey ? 11 : 1);
-			let lft =      0 - panX/zoom;
-			let top =      0 - panY/zoom;
-			let rgt = s/zoom - panX/zoom;
-			let btm = s/zoom - panY/zoom;
+			let dx = 0; let dy = 0;
 			switch(ev.key){
-				case "ArrowLeft":
-					if(lft >= -s/4){
-						panX += s/N*zoom * dmul;
-					}
+				case "ArrowLeft": case "a": case "A":
+					dx =  sx/N*zoom * dmul;
 					break;
-				case "ArrowRight":
-					if(rgt <= s+s/4){
-						panX -= s/N*zoom * dmul;
-					}
+				case "ArrowRight": case "d": case "D":
+					dx = -sx/N*zoom * dmul;
 					break;
-				case "ArrowUp":
-					if(top >= -s/4){
-						panY += s/N*zoom * dmul;
-					}
+				case "ArrowUp": case "w": case "W":
+					dy =  sy/M*zoom * dmul;
 					break;
-				case "ArrowDown":
-					if(btm <= s+s/4){
-						panY -= s/N*zoom * dmul;
-					}
+				case "ArrowDown": case "s": case "S":
+					dy = -sy/M*zoom * dmul;
 					break;
+			}
+			let panXf = panX + dx;
+			let panYf = panY + dy;
+			//Make sure center of viewport never goes off board
+			//get cell of center of veiwport and see if it's on the board,
+			//or if we're at least going the right way to get it back on the board
+			let I = Math.floor((canvas.width /2 - panXf)/zoom/celw);
+			let J = Math.floor((canvas.height/2 - panYf)/zoom/celh);
+			if((I>=0 || dx<=0) && (I<N || dx>=0) && (J>=0 || dy<=0) && (J<M || dy>=0)){
+				panX = panXf;
+				panY = panYf;
 			}
 			redraw();
 			break;
@@ -441,10 +735,12 @@
 	});
 	
 	window.addEventListener("resize", ()=>{
-		let s = Math.min(window.innerWidth, window.innerHeight) * 0.95 - 10; //square
-		canvas.width  = s;
-		canvas.height = s;
-		celw = s/N; celh = s/N;
+		s = Math.min(window.innerWidth, window.innerHeight) * 0.95 - 10; //square
+		sx = (N < M ? s*N/M : s);
+		sy = (M < N ? s*M/N : s);
+		canvas.width  = sx;
+		canvas.height = sy;
+		celw = sx/N; celh = sy/M;
 		redraw();
 	});
 	
@@ -463,33 +759,33 @@
 			let j = Math.floor( ( e.offsetY - panY ) / zoom / celh );
 			let newState = (paintingLeft?paintLeft:paintRight);
 			setCell(i,j,newState);
-			redraw();
 			if(autoFetching){ //syncing
 				postchange(i,j, newState);
 			}
-			cnt = 0; //new initial state
+			<!-- cnt = 0; //new initial state -->
+			setInitialState();
 			autoStepping = false;
 		}
 		redraw();
 	}
-	canvas.addEventListener('mouseenter', ()=>{ mouseIn = true; paintingLeft=false; paintingRight=false; }, false);
-	canvas.addEventListener('mouseleave', ()=>{ mouseIn = false; paintingLeft=false; paintingRight=false; redraw(); }, false);
+	canvas.addEventListener('mouseenter', ()=>{ mouseIn = true; }, false);
+	canvas.addEventListener('mouseleave', ()=>{ mouseIn = false; redraw(); }, false);
 	canvas.addEventListener('mouseup', ()=>{ paintingLeft = false; paintingRight = false; } );
 	
 	var redrawingFlag = 0; //to avoid wasting effort on multiple asynchronous redraws at once
 	function redraw(){
 		if(redrawingFlag++ > 0){ return; }
 		context.save();
-		context.clearRect(0,0,s,s);
+		context.clearRect(0,0,canvas.width,canvas.height);
 		context.translate(panX,panY);
 		context.scale(zoom,zoom);
 		for(let i=0; i < N; i++){ 
-			for(let j=0; j < N; j++){
+			for(let j=0; j < M; j++){
 				let isalive = !!(cells[i][j]);
 				if(isalive){
 					context.fillStyle=getStateColor(cells[i][j]);
 				}else{
-					context.fillStyle=["#661141","#661111"][(i+j)%2];
+					context.fillStyle=getBackgroundColor(i,j);
 				}
 				<!-- context.fillRect((s+i*celw+panX)%s,(s+j*celh+panY)%s,celw,celh); //wrap view -->
 				context.fillRect(i*celw,j*celh,celw,celh);
@@ -498,7 +794,7 @@
 		
 		if(mouseIn){
 			let I = Math.floor((mousex - panX )/zoom/celw); let J = Math.floor((mousey - panY)/zoom/celh);
-			if(I >= 0 && I < N && J >= 0 && J < N){
+			if(I >= 0 && I < N && J >= 0 && J < M){
 				let st = cells[I][J];
 				context.fillStyle = '#f0f0f0';
 				context.fillRect(I*celw,J*celh,celw,celh);
@@ -512,16 +808,18 @@
 	}
 	
 	function updateReadout(){
-		let speedstr = (autoStepRate > 0 ? '<'+Math.round(1000/autoStepRate*10)/10 : 'MAX')+' steps/second';
+		<!-- let speedstr = (autoStepRate > 0 ? '<'+Math.round(1000/autoStepRate*10)/10 : 'MAX')+' steps/second'; -->
+		let speedstr = autoStepRate+'ms/gen';
 		readout_speed.textContent = (autoStepping ? 'Simulating at '+speedstr : 'Paused');
 		readout_speed.style.color = (autoStepping ? '#000000' : '#888888');
-		readout_step.textContent  = (cnt > 0 ? 'Generation '+cnt : 'Generation 0 (Initial State)');
+		readout_step.textContent  = (cnt > 0 ? 'Generation '+cnt : 'Initial State');
 		readout_zoom.textContent  = 'Zoom: ' + Math.round(zoom*100) + '%';
 		readout_zoom.style.color = (zoom != 1 ? '#000000' : '#888888');
 		<!-- readout_pan.textContent  = 'Pan: ' + Math.floor((s/2 - panX)/zoom/celw) + ', ' + Math.floor((s/2 - panY)/zoom/celh); -->
 		let I = Math.floor((mousex - panX )/zoom/celw); let J = Math.floor((mousey - panY)/zoom/celh);
-		readout_cursor.textContent  = 'Cursor: ' + I + ', ' + J;
-		if(mouseIn && I >= 0 && I < N && J >= 0 && J < N){
+		readout_cursor.textContent  = 'Cursor: ' + (I-Math.floor(N/2)) + ', ' + (J-Math.floor(M/2));
+		readout_cursor.style.color  = (mouseIn ? '#000000' : '#888888');
+		if(mouseIn && I >= 0 && I < N && J >= 0 && J < M){
 			readout_state.textContent  = 'State of cell at cursor: ' + cells[I][J];
 			readout_state.style.color  = (parseInt(cells[I][J]) > 0 ? '#000000' : '#888888');
 		}else{
@@ -530,28 +828,34 @@
 		}
 	}
 	
-	
+	//@todo still doesn't always zoom in on the right place
 	function zoomOut(){
-		if(zoom > 0.75){
-			panX -= s/2; panY -= s/2;
-			let absx = s-(s/2+panX/zoom);
-			let absy = s-(s/2+panY/zoom);
-			zoom = Math.max( zoom/1.1, 0.75 );
-			panX = (s/2 - absx) * zoom;
-			panY = (s/2 - absy) * zoom;
-			panX += s/2; panY += s/2;
+		if(zoom > 0.1){
+			panX -= canvas.width/2; panY -= canvas.height/2;
+			let absx = sx-(sx/2+panX/zoom);
+			let absy = sy-(sy/2+panY/zoom);
+			let zoom0 = zoom;
+			zoom = Math.max( zoom/1.1, 0.1 );
+			zoom = Math.round(zoom*10)/10;
+			if(zoom === zoom0 && zoom > 0.1){ zoom -= 0.1; }
+			panX = (sx/2 - absx) * zoom;
+			panY = (sy/2 - absy) * zoom;
+			panX += canvas.width/2; panY += canvas.height/2;
 			redraw();
 		}
 	}
 	function zoomIn(){
 		if(zoom < 10){
-			panX -= s/2; panY -= s/2;
-			let absx = s-(s/2+panX/zoom);
-			let absy = s-(s/2+panY/zoom);
+			panX -= canvas.width/2; panY -= canvas.height/2;
+			let absx = sx-(sx/2+panX/zoom);
+			let absy = sy-(sy/2+panY/zoom);
+			let zoom0 = zoom;
 			zoom = Math.min( zoom*1.1, 10 );
-			panX = (s/2 - absx) * zoom;
-			panY = (s/2 - absy) * zoom;
-			panX += s/2; panY += s/2;
+			zoom = Math.round(zoom*10)/10;
+			if(zoom === zoom0 && zoom < 10){ zoom += 0.1; }
+			panX = (sx/2 - absx) * zoom;
+			panY = (sy/2 - absy) * zoom;
+			panX += canvas.width/2; panY += canvas.height/2;
 			redraw();
 		}
 	}
@@ -561,15 +865,28 @@
 	//Step through the state
 	function doStep(){
 		if(cnt === 0){ initialstate = serialize(); }
+		if(autoFetching){
+			autoFetching = false; //stepping through implies no longer synced
+			synccheckbox.checked = false;
+		}
 		
+		while(cells.length < N){cells.push(new Array(M).fill(0));}
+		while(cellneighbors.length < N){cellneighbors.push(new Array(M).fill(0));}
 		for(let i = 0; i < N; i++){
-			for(let j = 0; j < N; j++){
+			while(cells[i].length < M){cells[i].push(0);}
+			while(cellneighbors[i].length < M){cellneighbors[i].push(0);}
+			for(let j = 0; j < M; j++){
 				let neighborcount = 0;
-				//count neighbors
+				//count live neighbors
 				for(let I = -1; I < 2; I++){
 					for(let J = -1; J < 2; J++){
-						if( (I!=0||J!=0) && ( !!( cells[(N+i+I)%N][(N+j+J)%N] ) === true ) ){
-							neighborcount++;
+						if(I!=0||J!=0){
+							<!-- let ison = (wrap || ( i+I < N && j+J < M && i+I >= 0 && j+J >= 0)); -->
+							let ison = ( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) );
+							let isoverride = (!ison && edgestate > 0);
+							if( ( ison && cells[(N+i+I)%N][(M+j+J)%M] > 0 ) || isoverride ){
+								neighborcount++;
+							}
 						}
 					}
 				}
@@ -577,7 +894,7 @@
 			}
 		}
 		
-		if(noiseRate > 0 && cnt%(101-noiseRate)==0){addNoise();}
+		<!-- if(noiseRate > 0 && cnt%(101-noiseRate)==0){addNoise();} -->
 		
 		let oldcells = new Array(cells.length);
 		for(let i=0; i<cells.length; ++i){
@@ -585,46 +902,52 @@
 		}
 			
 		for(let i=0; i < N; i++){ 
-			for(let j=0; j < N; j++){
+			for(let j=0; j < M; j++){
 				let wasalive = !!cells[i][j];
 				let neighbors = cellneighbors[i][j];
 				let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
-				if(!colormode){
-					cells[i][j] = isalive;
-				}else{
-					if(isalive){
-						//find state with most occurrences
-						let states = {};
-						for(let I = -1; I <= 1; I++){
-							for(let J = -1; J <= 1; J++){
-								let st = oldcells[(N+i+I)%N][(N+j+J)%N]; //state index
-								if(st > 0){
-									states[st] = states[st] ? states[st]+1 : 1; //state count
-								}
+				if(isalive){
+					//find state with most occurrences
+					let statecounts = {};
+					for(let I = -1; I <= 1; I++){
+						for(let J = -1; J <= 1; J++){
+							let st = oldcells[(N+i+I)%N][(M+j+J)%M]; //state index
+							<!-- if(!wrap && ( i+I >= N || j+J >= M || i+I < 0 || j+J < 0 ) ){ st = edgestate; } -->
+							if(!( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) )){
+								st = edgestate;
+							}
+							if(st > 0){
+								statecounts[st] = statecounts[st] ? statecounts[st]+1 : 1; //state count
 							}
 						}
-						let index, max = 0;
-						for(const [k, v] of Object.entries(states)) {
-							if(v > max || v == max && Math.random() < 0.5){
-								max = v;
-								index = k;
-							}
-						}
-						if(!index){ index = 1+Math.round(Math.random()*numLiveStates); }
-						cells[i][j] = index; //max value
-					}else{
-						cells[i][j] = 0;
 					}
+					let st = 0, max = 0, collisions = 0, statesum = 0;
+					for(const [k, v] of Object.entries(statecounts)) {
+						<!-- if(v > max || v === max && (i+j+v+max)%2 === 0){ -->
+						if(v > max){
+							max = v;
+							st = k;
+							collisions = 0;
+						}
+						else if(v === max){ collisions++; }
+						statesum += parseInt(k);
+					}
+					if(collisions > 0){
+						<!-- st = ( statecounts.keys().reduce( (sum,k)=>{sum+parseInt(k), 0} ) -1)%maxLiveState+1; -->
+						<!-- st = ( statesum -1 )%maxLiveState+1; -->
+						st = Math.round(statesum / statecounts.length);
+					}
+					<!-- st = Math.round(statesum / statecounts.length); -->
+					
+					//if 0 neighbors
+					if(!st){
+						if(wasalive){ st = cells[i][j]; }
+						else{ st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; } //pseudorandom but fixed
+					}
+					cells[i][j] = st; //max value
+				}else{
+					cells[i][j] = 0;
 				}
-				
-				<!-- if(isalive){ -->
-					<!-- context.fillStyle="#66ccff"; -->
-				<!-- }else if(wasalive && !autoStepping){ -->
-					<!-- context.fillStyle="#993311"; -->
-				<!-- }else{ -->
-					<!-- context.fillStyle="#6611"+(4*(((i+j)%2)))+"1"; -->
-				<!-- } -->
-				<!-- context.fillRect(i*celw,j*celh,celw,celh); -->
 			}
 		}
 		
@@ -653,7 +976,7 @@
 		while(true){
 			while(autoFetching){
 				await fetchupdate();
-				await sleep(2000);
+				await sleep(10000); //fetch every 10 seconds
 			}
 			while(!autoFetching){
 				await sleep(200);
@@ -665,12 +988,9 @@
 	
 	
 	function setCell(i,j,state){
-		if(i >= N || j >= N || i < 0 || j < 0){ return; }
+		if(i >= N || j >= M || i < 0 || j < 0){ return; }
 		cells[i][j] = parseInt(state);
-		<!-- if(!!state === true){ -->
 		if(!!state){
-			<!-- context.fillStyle="#66ccff"; -->
-			<!-- context.fillStyle=statecolors[state-1]; -->
 			context.fillStyle=getStateColor(state);
 		}else{
 			context.fillStyle=["#661141","#661111"][(i+j)%2];
@@ -678,11 +998,14 @@
 		context.fillRect(i*celw,j*celh,celw,celh);
 	}
 	
+	
+	
+	
 	function randomizeBoard(ratio){
 		for(let i = 0; i < N; i++){
-			for(let j = 0; j < N; j++){
-				if(Math.random() < ratio){ setCell(i,j,0); }
-				else{ setCell(i,j, Math.round(Math.random()*numLiveStates)); }
+			for(let j = 0; j < M; j++){
+				if(Math.random() > ratio){ setCell(i,j,0); }
+				else{ setCell(i,j, Math.round(1+Math.random()*(numLiveStates-1))); }
 			}
 		}
 		cnt=0;
@@ -691,13 +1014,72 @@
 	
 	function clearBoard(){
 		for(let i = 0; i < N; i++){
-			for(let j = 0; j < N; j++){
+			for(let j = 0; j < M; j++){
 				setCell(i,j,0);
 			}
 		}
 		cnt=0;
 		autoStepping = false;
 		redraw();
+	}
+	
+	function setInitialState(){
+		cnt = 0;
+		initialstate = serialize();
+	}
+	
+	function countCells(){
+		let statecounts = {};
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < M; j++){
+				let st = cells[i][j]; //state index
+				statecounts[st] = statecounts[st] ? statecounts[st]+1 : 1; //state count
+			}
+		}
+		console.log(statecounts);
+		return JSON.stringify(statecounts).replace(/,/g,'\n').replace(/["{}]/g,'').replace(/:/g,': ');
+	}
+	function recolorLiveCells(){
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < M; j++){
+				let st = cells[i][j];
+				if(st > 0){
+					setCell(i,j,Math.round(1+Math.random()*numLiveStates));
+				}
+			}
+		}
+		setInitialState();
+		redraw();
+	}
+	function replaceColor(){
+		<!-- let st0 = paintLeft; -->
+		<!-- let st1 = paintRight; -->
+		const def = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35';
+		let states = prompt("States to replace (comma-separated):",def).split(/,/g).map((x)=>(parseInt(x)));
+		let st1 = parseInt(prompt("New state:", "1"));
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < M; j++){
+				let st = cells[i][j];
+				<!-- if(st === st0){ -->
+				if(states.indexOf(st) != -1){
+					setCell(i,j,st1);
+				}
+			}
+		}
+		setInitialState();
+		redraw();
+	}
+	function resetViewport(){
+		zoom = 1.00; panX = 0; panY = 0;
+		//put center of board in center of viewport
+		let I = Math.round(N/2);
+		let J = Math.round(M/2);
+		zoom = Math.ceil( 1.00 * (128/Math.max(N,M)) *10)/10;
+		panX = canvas.width /2 - I*celw * zoom;
+		panY = canvas.height/2 - J*celh * zoom;
+		
+		redraw();
+		updateReadout();
 	}
 	
 	<!-- function invertBoard(){ -->
@@ -710,6 +1092,151 @@
 		<!-- cnt = 0; -->
 	<!-- } -->
 	
+	function fillCircle(){
+		let r = parseInt(prompt('Radius of circle:','10'));
+		let a = prompt( 'Center on cell (x,y):', '0,0' ).split(',');
+		let s = parseInt(prompt('State to fill:',paintLeft));
+		let x = parseInt(a[0]) + Math.floor(N/2); x=(x+N)%N; //convert from with origin at center to actual coords
+		let y = parseInt(a[1]) + Math.floor(M/2); y=(y+M)%M;
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < M; j++){
+				let d = Math.round( ( (x-i)**2 + (y-j)**2 )**0.5 );
+				if(d <= r){
+					setCell(i,j,s);
+					if(autoFetching){ //syncing
+						postchange(i,j, s);
+					}
+				}
+			}
+		}
+		setInitialState();
+		redraw();
+	}
+	
+	function shiftBoardPrompt(){
+		let a = prompt( 'Distance to shift (x,y):', '0,0' ).split(',');
+		let dx = parseInt(a[0]);
+		let dy = parseInt(a[1]);
+		shiftBoard(dx,dy);
+	}
+	function shiftBoard(dx,dy){
+		dx = -dx; dy = -dy; //idk why it needs this but it does
+		cells =        cells   .slice((dx+100*N)%N, N).concat(cells   .slice(0, (dx+100*N)%N));
+		for(let i = 0; i < N; i++){
+			cells[i] = cells[i].slice((dy+100*M)%M, M).concat(cells[i].slice(0, (dy+100*M)%M));
+		}
+		setInitialState();
+		redraw();
+	}
+	
+	function unpadBoard(){
+		let xmin = N; let ymin = M; let xmax = 0; let ymax = 0;
+		for(let j = 0; j < M; j++){
+			for(let i = 0; i < N; i++){
+				if(cells[i][j] > 0){
+					if(i < xmin){ xmin = i; }else if(i > xmax){ xmax = i; }
+					if(j < ymin){ ymin = j; }else if(j > ymax){ ymax = j; }
+				}
+			}
+		}
+		// shift array so that pattern is at top left
+		shiftBoard(0-xmin, 0-ymin);
+	}
+	function recenterBoard(){
+		let xmin = N; let ymin = M; let xmax = 0; let ymax = 0;
+		for(let j = 0; j < M; j++){
+			for(let i = 0; i < N; i++){
+				if(cells[i][j] > 0){
+					if(i < xmin){ xmin = i; }else if(i > xmax){ xmax = i; }
+					if(j < ymin){ ymin = j; }else if(j > ymax){ ymax = j; }
+				}
+			}
+		}
+		// shift array so that pattern is centered with a bit of padding
+		let xpad = N - (xmax-xmin);
+		let ypad = M - (ymax-ymin);
+		shiftBoard(0-xmin+xpad/2, 0-ymin+ypad/2);
+	}
+	
+	function seedBoardPrompt(){
+		let density = parseFloat(prompt('Cell density (0-100):','50'));
+		let states = parseInt(prompt('Number of live states (1-35):','35'));
+		seedBoard(density,states);
+	}
+	function seedBoard(density, states){
+		if(density <= 0){ density = 0.1; }
+		if(states <= 0){ states = 1; }else if(states > maxLiveState){ states = maxLiveState; }
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < M; j++){
+				if(Math.random()*100 <= density){
+					let s = Math.round(1+Math.random()*(states-1));
+					setCell(i,j,s);
+				}
+			}
+		}
+		autoFetching = false; synccheckbox.checked = false;
+		setInitialState();
+		redraw();
+	}
+	
+	function messWithIt(){
+		for(let i = 0; i < N; i++){
+			let I = Math.round(Math.random()*N);
+			cells.splice(I,0, cells[N-1]).pop(); //shuffle the columns
+		}
+		let rcells = [];
+		for(let j = 0; j < N; j++){
+			rcells.push([]);
+			for(let i = 0; i < N; i++){
+				rcells[j].push(cells[i][j]); //rotate board
+			}
+		}
+		for(let j = 0; j < M; j++){
+			let J = Math.round(Math.random()*M);
+			rcells.splice(J,0, rcells[M-1]).pop(); //shuffle the (new, rotated) columns
+		}
+		cells = [];
+		for(let j = 0; j < M; j++){
+			cells.push([]);
+			for(let i = 0; i < N; i++){
+				cells[j].push(rcells[i][j]); //rotate it again
+			}
+		}
+		setInitialState();
+		redraw();
+	}
+	
+	//just for fun
+	var chaosChaos = false; //chaos mode - randomize rules after each step. just for fun
+	async function toggleChaos(){
+		chaosChaos = !chaosChaos;
+		let chaosButton = document.getElementById('chaosButton');
+		if(!chaosChaos){ chaosButton.className = chaosButton.className.replace(" button_on", ""); }
+		else{            chaosButton.className += " button_on"; }
+		while(chaosChaos){
+			paintbox.value = (Math.round(Math.random()*maxLiveState)+"/"+Math.round(Math.random()*maxLiveState));
+			setPaintStates();
+			if(autoStepping){
+				randomizeRules();
+				seedBoard(0.01,maxStates);
+				let ax = ( 15-Math.random()*30 )+'deg';
+				let ay = ( 15-Math.random()*30 )+'deg';
+				let az = (  5-Math.random()*10 )+'deg';
+				let dx = ( 15-Math.random()*30 )+'px';
+				let dy = ( 15-Math.random()*30 )+'px';
+				let dz = ( 15-Math.random()*30 )+'px';
+				let sclx = ( 1-Math.random()*0.1 );
+				let scly = ( 1-Math.random()*0.1 );
+				canvas.style.transform = ('rotateX('+ax+') rotateY('+ay+') rotateZ('+az+')'
+										 +'translate('+dx+','+dy+')'+' translateZ('+dz+')'
+										 +'scale('+sclx+','+scly+')' );
+			}else{
+				canvas.style.transform = '';
+			}
+			await sleep(10);
+		}
+		canvas.style.transform = '';
+	}
 	
 	<!-- function addNoise(){ -->
 		<!-- let num = Math.floor(Math.random()*Math.pow(noiseRate,0.5)); -->
@@ -719,57 +1246,22 @@
 	<!-- } -->
 	
 	
-	function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-	
-	
-	
-	function serialize(){
-		let str = "";
-		for(let j=0; j<N; j++){
-			for(let i=0; i<N; i++){
-				<!-- str = str + ( cells[i][j] ? "O":"." ); -->
-				str = str + ( cells[i][j].toString(36) );
+	function setBoardSize(){
+		let arr = sizebox.value.split('x');
+		if(arr && arr.length >= 2 && !isNaN(parseInt(arr[0])) && !isNaN(parseInt(arr[1]))){
+			N = parseInt(arr[0]);
+			M = parseInt(arr[1]);
+			sx = N*celw;
+			sy = M*celh;
+			while(cells.length < N){ cells.push(new Array(M).fill(0)); }
+			for(let i = 0; i < N; i++){
+				while(cells[i].length < M){ cells[i].push(0); }
 			}
-			str = str + '\n';
+			redraw();
 		}
-		return str;
-	}
-	function deserialize(str){
-		let i0 = 0; let j0 = 0;
-		let c = 0; let C = Math.min(str.length, (N-i0)*(N-j0));
-		let i = i0; let j = j0; let c0 = 0;
-		if(str[0] == '\n'){ c0 = 1; }
-		for(c = c0; c < C; c++){
-			switch(str[c]){
-				case '.': case '0':
-					setCell(i,j,0);
-					i++;
-					break;
-				case '1': case 'O':
-					setCell(i,j,1);
-					i++;
-					break;
-				case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-					<!-- setCell(i,j,2); -->
-					setCell(i,j,parseInt(str[c]));
-					i++;
-					break;
-				case '\n': case '/': case ',':
-					j++;
-					i=i0;
-					break;
-				case ' ':
-					i++;
-					break;
-				setCell(i,j,parseInt(str[c],36)); i++; //base-36 for 0-9 + a-z
-			}
-			
-		}
-		updateReadout();
-		redraw();
-		cnt=0;
 	}
 	
+	//example rules: http://psoup.math.wisc.edu/mcell/rullex_life.html
 	function setSBrules(){
 		let sb = (' '+rulebox.value.replace(/[^\d\/]/g,'')+' ').split('/');
 		let survstr = sb[0];
@@ -778,33 +1270,581 @@
 		born = [];
 		for(i = 0; i < survstr.length; i++){ surv.push(parseInt(survstr[i])); }
 		for(i = 0; i < bornstr.length; i++){ born.push(parseInt(bornstr[i])); }
+		cnt=0;
 	}
 	
 	function setPaintStates(){
 		let st = (' '+paintbox.value.replace(/[^\d\/]/g,'')+' ').split('/');
 		paintLeft = parseInt(st[0]);
 		paintRight = parseInt(st[1]);
+		if(paintLeft > maxLiveState || paintRight > maxLiveState){
+			alert('Warning: states above 35 will wrap around back to 1 when saving and loading to server, '
+			     +'as each cell is stored as a single base-36 digit. Local saves can handle states up to 255.');
+		}
+		
+		let tbl = document.getElementById('painttable');
+		let cells = tbl.getElementsByTagName('td');
+		cells[0].innerHTML = paintLeft;
+		cells[0].style.backgroundColor = getStateColor(paintLeft);
+		cells[1].innerHTML = paintRight;
+		cells[1].style.backgroundColor = getStateColor(paintRight);
+		cells[0].style.color = ( paintLeft === 0 ? '#888888' : getBackgroundColor(0,0) );
+		cells[1].style.color = ( paintRight=== 0 ? '#888888' : getBackgroundColor(0,0) );
+	}
+	
+	function setWrap(){
+		wrap = wrapcheckbox.checked;
+		wrapx = document.getElementById('wrapXCheckbox').checked;
+		wrapy = document.getElementById('wrapYCheckbox').checked;
+		<!-- document.getElementById('edgestatediv').style.display = (wrap ? "none" : "block"); -->
+		document.getElementById('wrapxydiv').style.display = (wrap ? "block" : "none");
 	}
 	
 	function randomizeRules(){
 		let survstr = '';
 		let bornstr = '';
-		for(i = 0; i < 10; i++){
-			if(Math.random() < 0.2){
+		for(i = 1; i < 10; i++){
+			if(Math.random() < 0.1 || i < 5 && Math.random() < 0.3){
 				survstr += i;
 			}
-			if(Math.random() < 0.2){
+			if(Math.random() < 0.1 || i < 5 && Math.random() < 0.3){
 				bornstr += i;
 			}
+		}
+		if(survstr.length === 0 && Math.random() < 0.8){
+			survstr += Math.round(Math.random()*9);
+		}
+		if(bornstr.length === 0 && Math.random() < 0.8){
+			bornstr += Math.round(Math.random()*9);
 		}
 		rulebox.value = survstr + '/' + bornstr;
 		setSBrules();
 	}
 	
+	function randomizeSize(){
+		let w = 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		let h = 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		sizebox.value = w + 'x' + h;
+		setBoardSize();
+		setInitialState();
+	}
 	
+	
+	
+	function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+	
+	
+	
+	
+	
+	
+	
+	// comms and file stuff below here
+	
+	
+	function serialize(){
+		let str = "";
+		for(let j=0; j < M; j++){
+			for(let i=0; i < N; i++){
+				let st = (cells[i]&&cells[i][j] ? parseInt(cells[i][j]).toString(36) : '0' );
+				str = str + st;
+			}
+			str = str + '\n';
+		}
+		return str;
+	}
+	
+	function serialize_mcl(){
+		let survstr = ''; for(let i = 0; i < surv.length; i++){ if(!isNaN(parseInt(surv[i]))){survstr += surv[i];} }
+		let bornstr = ''; for(let i = 0; i < born.length; i++){ if(!isNaN(parseInt(born[i]))){bornstr += born[i];} }
+		let data = "";
+		data += '#MCell 4.00\n#GAME Life';
+		data += '\n#RULE '+survstr+'/'+bornstr;
+		data += '\n#SPEED '+autoStepRate;
+		data += '\n#BOARD '+N+'x'+M;
+		data += '\n#CCOLORS '+(numLiveStates+1);
+		data += '\n#PALETTE '+palette;
+		data += '\n#WRAP '+(wrap ? 1 : 0);
+		data += '\n#WRAPX '+(wrapx ? 1 : 0); //not standard but shouldn't cause any problems
+		data += '\n#WRAPY '+(wrapx ? 1 : 0); //ditto
+		for(let j=0; j < M; j++){
+			data += '\n#L';
+			for(let i=0; i < N; i++){
+				if(cells[i] && cells[i][j] && cells[i][j] > 0){
+					let st = cells[i][j];
+					if(st <= 24){
+						data += (st+10).toString(36).toUpperCase();
+					}else{
+						let radix = Math.floor(st/24);
+						let remainder = st - 24*radix;
+						data += (radix+10).toString(36).toLowerCase()
+						      + (remainder+10).toString(36).toUpperCase();
+					}
+				}else{
+					data += '.';
+				}
+			}
+			data += '$';
+		}
+		return data;
+	}
+	
+	
+	
+	
+	function deserialize_detectFormat(data,extension){
+		switch(extension){
+		case 'mcl':
+			deserialize_mcl(data);
+			return;
+		case 'lif': case 'life': //several formats use this extension, need to look at the contents
+			let lines = data.split('\n');
+			let L = 0; //find first line without a prefix
+			while((!lines[L] || lines[L][0] === '#' || lines[L][0] === '!') && L < lines.length-1){ L++; }
+			if(lines[L].indexOf('=') !== -1){ //rle header
+				deserialize_rle(data);
+			}else if(data.indexOf('$') !== -1){
+				deserialize_rle(data);
+			}else if(lines[L].indexOf('*') === -1 && lines[L].indexOf('.') === -1){
+				deserialize_life106(data);
+			}else{
+				deserialize_life105(data);
+			}
+			return;
+		case 'l':
+			deserialize_rle(data); //dblife is essentially the same format as RLE
+			return;
+		case 'rle':
+			deserialize_rle(data);
+			return;
+		case 'plf':
+			alert('Importing ProLife files is not supported');
+			return;
+		case 'txt': case 'text':
+			deserialize(data);
+			return;
+		}
+		alert("Didn't recognize the extension "+extension+". If it's not imported properly, "
+		     +"try converting your file to one of the following formats:"
+			 +"\nMCell (.mcl)"
+			 +"\nLife 1.05 (.lif, .life)"
+			 +"\nLife 1.06 (.lif, .life)"
+			 +"\nRLE (.rle)"
+			 +"\nXLife 2.0 (.lif, .life)"
+			 +"\ndbLife (.l)");
+		deserialize_detectFormat(data, 'lif'); //if none of the above, try again assuming the most common format
+	}
+	function deserialize(str){
+		let i = 0; let j = 0;
+		for(let c = 0; c < str.length; c++){
+			if(str[c] === '\n'){
+				i=0; j++;
+			}else if(str[c] === '.'){
+				setCell(i,j,0);
+			}else if(str[c] === '*' || str[c] === 'O'){
+				setCell(i,j,1);
+			}else{
+				setCell(i,j,parseInt(str[c],36)); //base-36 for 0-9 + a-z
+				i++;
+			}
+		}
+		updateReadout();
+		redraw();
+		setInitialState();
+	}
+	function deserialize_mcl(data){
+		console.log('deserializing as MCell');
+		clearBoard();
+		let lines = data.split('\n');
+		let i = 0; let j = 0;
+		for(let l = 0; l < lines.length; l++){
+			let line = lines[l].substring(lines[l].indexOf(' ')+1); //everything after first space
+			switch(lines[l].split(' ')[0]){
+			case "#RULE":
+				rulebox.value = line;
+				setSBrules();
+				break;
+			case "#BOARD":
+				sizebox.value = line;
+				setBoardSize();
+				break;
+			case "#CCOLORS":
+				numLiveStates = parseInt(line)-1;
+				break;
+			case "#PALETTE":
+				paletteselect.value = line;
+				palette = paletteselect.value;
+				setPaletteTableColors();
+				break;
+			case "#WRAP":
+				wrapcheckbox.checked = [false,true][parseInt(line)];
+				setWrap();
+				break;
+			case "#WRAPX":
+				wrapxcheckbox.checked = [false,true][parseInt(line)];
+				setWrap();
+				break;
+			case "#WRAPY":
+				wrapycheckbox.checked = [false,true][parseInt(line)];
+				setWrap();
+				break;
+			case "#SPEED":
+				autoStepRate = parseInt(line);
+				break;
+			case "#L":
+				let c = 0;
+				while(c < line.length){
+					let repeats = 1;
+					let repeatstr = '';
+					while(!isNaN(parseInt(line[c],10)) && c < line.length){ //run count
+						repeatstr += parseInt(line[c],10);
+						c++;
+					}
+					if(repeatstr.length > 0){ repeats = parseInt(repeatstr); }
+					if(line[c] === '$'){
+						while(repeats > 0){
+							i=0;
+							j++; repeats--;
+						}
+						c++;
+					}else if(line[c] == '.'){
+						while(repeats > 0){
+							setCell(i,j,0);
+							i++; repeats--;
+						}
+						c++;
+					}else if(line[c] !== undefined){
+						let st = 0;
+						if(line[c] === line[c].toLowerCase()){ //lower case - prefix for states above 24
+							st += 24 * (parseInt(line[c],36)-9);
+							c++; //continue processing next character
+						}
+						if(line[c] && isNaN(parseInt(line[c],10)) && !isNaN(parseInt(line[c],36))){
+							st += ( parseInt(line[c],36)-9 || 0 );
+							c++;
+						}
+						while(repeats > 0){
+							setCell(i,j,st);
+							i++; repeats--;
+						}
+					}else{
+						c++;
+					}
+				}
+				break;
+			}
+		}
+		resetViewport();
+		updateReadout();
+		redraw();
+		setInitialState();
+	}
+	function deserialize_life105(data){ //also compatible with xlife
+		console.log('Deserializing as Life 1.05 / XLife');
+		clearBoard();
+		sizebox.value = '1000x1000'; //make it big and crop it down at the end
+		                             //since with this format you tend to run into negative coordinates
+									 //and that would be a mess if we were resizing as we go
+		setBoardSize();
+		let lines = data.split('\n');
+		let i = 0; let j = 0;
+		let I = 0; let J = 0;
+		let xmax = 0; let ymax = 0; let xmin = N; let ymin = M;
+		for(let l = 0; l < lines.length; l++){
+			let line;
+			let pref;
+			if(lines[l][0] === '#'){
+				line = lines[l].substring(lines[l].indexOf(' ')+1); //everything after first space
+				pref = lines[l].split(' ')[0];
+			}else{
+				line = lines[l];
+				pref = '';
+			}
+			switch(pref){
+			case "#N":
+				rulebox.value = '23/3';
+				setSBrules();
+				break;
+			case "#R":
+				rulebox.value = line;
+				setSBrules();
+				break;
+			case "#P": //cell block coords
+				I = parseInt(line.split(' ')[0]);
+				J = parseInt(line.split(' ')[1]);
+				i = 0; j = 0;
+				break;
+			case '':
+				for(let c = 0; c < line.length; c++){
+					<!-- if(I+i >= N || I+i <= -N){ -->
+						<!-- sizebox.value = (I+i+1)+'x'+M; -->
+						<!-- setBoardSize(); -->
+					<!-- } -->
+					<!-- if(J+j >= M || J+j <= -M){ -->
+						<!-- sizebox.value = N+'x'+(J+j+1); -->
+						<!-- setBoardSize(); -->
+					<!-- } -->
+					if(I+i < xmin){ xmin = I+i; }
+					if(I+i > xmax){ xmax = I+i; }
+					if(J+j < ymin){ ymin = J+j; }
+					if(J+j > ymax){ ymax = J+j; }
+					switch(line[c]){
+					case '.':        case '0': case '_':
+						setCell((I+i+N)%N,(J+j+M)%M,0);
+						i++;
+						break;
+					case '*':        case '1': case 'O':
+						setCell((I+i+N)%N,(J+j+M)%M,1);
+						i++;
+						break;
+					}
+				}
+				i=0; j++;
+				break;
+			}
+		}
+		//crop board to fit
+		shiftBoard(0-xmin, 0-ymin);
+		sizebox.value = (xmax-xmin)+'x'+(ymax-ymin);
+		setBoardSize();
+		// shift array so that pattern is centered with a bit of padding
+		sizebox.value = (N+20)+'x'+(M+20);
+		setBoardSize();
+		shiftBoard(10, 10);
+		
+		wrapcheckbox.checked = false; setWrap(); //assumed, since it's not encoded
+		resetViewport();
+		updateReadout();
+		redraw();
+		setInitialState();
+	}
+	function deserialize_life106(data){
+		console.log('Deserializing as Life 1.06');
+		clearBoard();
+		sizebox.value = '1000x1000'; //make it big and crop it down at the end
+		                             //since with this format you tend to run into negative coordinates
+									 //and that would be a mess if we were resizing as we go
+		setBoardSize();
+		let lines = data.split('\n');
+		let xmin = N; let ymin = M; let xmax = 0; let ymax = 0;
+		for(let l = 0; l < lines.length; l++){
+			let line;
+			let pref;
+			if(lines[l][0] === '#'){
+				line = lines[l].substring(lines[l].indexOf(' ')+1); //everything after first space
+				pref = lines[l].split(' ')[0];
+			}else{
+				line = lines[l];
+				pref = '';
+			}
+			switch(pref){
+			case "#N":
+				rulebox.value = '23/3';
+				setSBrules();
+				break;
+			case "#R":
+				if(line != undefined && line.length > 0 && line.indexOf('/') !== -1 ){
+					rulebox.value = line;
+				}else{
+					rulebox.value = '23/3';
+				}
+				setSBrules();
+				break;
+			case '':
+				if(line.length === 0){ break; }
+				let pos = line.match(/(\-?\d+)\s*(\-?\d+)/g)[0].replace(/\s+/g,' ').split(' '); //account for weird whitespace
+				if(!pos){break;}
+				let i = parseInt(pos[0]);
+				let j = parseInt(pos[1]);
+				if(!!i && !!j){
+					if(i >= N){
+						sizebox.value = (N+1)+'x'+M;
+						setBoardSize();
+					}
+					if(j >= M){
+						sizebox.value = N+'x'+(M+1);
+						setBoardSize();
+					}
+					if(i < xmin){ xmin = i; }
+					if(j < ymin){ ymin = j; }
+					setCell((i+N)%N,(j+M)%M,1);
+				}
+				break;
+			}
+		}
+		//crop board to fit
+		shiftBoard(0-xmin, 0-ymin);
+		sizebox.value = (xmax-xmin)+'x'+(ymax-ymin);
+		setBoardSize();
+		// shift array so that pattern is centered with a bit of padding
+		shiftBoard(0-xmin, 0-ymin);
+		sizebox.value = (N+20)+'x'+(M+20);
+		setBoardSize();
+		shiftBoard(10, 10);
+		
+		wrapcheckbox.checked = false; setWrap(); //assumed, since it's not encoded
+		resetViewport();
+		updateReadout();
+		redraw();
+		setInitialState();
+	}
+	function deserialize_rle(data){
+		console.log('Deserializing as RLE / dbLife');
+		clearBoard();
+		let lines = data.split('\n');
+		let L = 0; //find first line without a prefix
+		while((!lines[L] || lines[L][0] === '#' || lines[L][0] === '!') && L < lines.length-1){ L++; }
+		let dblife = (data.indexOf('$') === -1);
+		if(lines.indexOf('=') !== -1){
+			let hargs = JSON.parse( '{"' + lines[L].replace(/\s/g,'').replace(/=/g,'":"').replace(/,/g,'","') + '"}' );
+			sizebox.value = hargs.x + 'x' + hargs.y;
+			setBoardSize();
+			if(hargs.rule){
+				rulebox.value = hargs.rule;
+			}else{
+				rulebox.value = '23/3';
+			}
+			setSBrules();
+		}else{
+			sizebox.value = '100x100'; //common default - enlarge as needed
+			setBoardSize();
+			rulebox.value = '23/3';
+			setSBrules();
+		}
+		
+		let i = 0; let j = 0;
+		let I = 0; let J = 0;
+		let xmax = 0; let ymax = 0; let xmin = N; let ymin = M;
+		for(let l = 0; l < lines.length; l++){
+			let line;
+			let pref;
+			if(lines[l][0] === '#'){
+				line = lines[l].substring(lines[l].indexOf(' ')+1); //everything after first space
+				pref = lines[l].split(' ')[0];
+			}else if(lines[l][0] === '!'){
+				line = lines[l].substring(lines[l].indexOf(' ')+1); //everything after first space
+				pref = '!';
+			}else{
+				line = lines[l];
+				pref = '';
+			}
+			switch(pref){
+			case "#r":
+				rulebox.value = line;
+				setSBrules();
+				break;
+			case "#R":
+				I = parseInt(line.split(' ')[0]);
+				J = parseInt(line.split(' ')[1]);
+				i = 0; j = 0;
+				break;
+			case '':
+				if(line.indexOf('=') !== -1 || (line.indexOf('!') !== -1 && l < lines.length-1)){break;} //make sure it's not the header
+				for(let c = 0; c < line.length; c++){
+					let repeats = 1;
+					let repeatstr = '';
+					while(!isNaN(parseInt(line[c],10)) && c < line.length){ //run count
+						repeatstr += parseInt(line[c],10);
+						c++;
+					}
+					if(repeatstr.length > 0){
+						repeats = parseInt(repeatstr);
+					}
+					<!-- if(line[c].toLowerCase() !== 'b'){ //avoid making it bigger for blank cells -->
+					if(i+repeats > N){
+						sizebox.value = (N+repeats+1)+'x'+M;
+						setBoardSize();
+					}
+					if(j+repeats > M && line[c] === '$'){
+						sizebox.value = N+'x'+(M+repeats+1);
+						setBoardSize();
+					}
+					if(i + repeats-1 > xmax){ xmax = i + repeats-1; }
+					<!-- } -->
+					if(line[c] === '$'){
+						while(repeats > 0){
+							i=0;
+							j++; repeats--;
+						}
+					}else if(line[c].toLowerCase() === 'b'){
+						while(repeats > 0){
+							setCell(i,j,0);
+							i++; repeats--;
+						}
+					}else if(line[c].toLowerCase() === 'o'){
+						if(i < xmin){ xmin = i; }
+						if(j < ymin){ ymin = j; }
+						while(repeats > 0){
+							setCell(i,j,1);
+							i++; repeats--;
+						}
+					}else if(line[c] !== undefined){
+						if(i < xmin){ xmin = i; }
+						if(j < ymin){ ymin = j; }
+						let st = parseInt(line[c],36);
+						while(repeats > 0){
+							setCell(i,j,st);
+							i++; repeats--;
+						}
+					}
+				}
+				
+				if(dblife){ i=0; j++; } //rle uses $ to separate newlines, dblife doesn't
+				if(j > M-1){ //in case of dblife, won't be caught by the one with the $ above
+					sizebox.value = N+'x'+(j+1);
+					setBoardSize();
+				}
+				if(j > ymax){ ymax = j; }
+				
+				break;
+			case "!": case "#C": case "#D": case "#O":
+				break;
+			}
+			if(lines[l][lines[l].length-1] === '!' && lines[l].length > 1 && lines[l][lines[l].length-2] !== '@'){ //ignore anything after ending !
+				console.log('Breaking on ending ! on line '+l+': '+lines[l]);
+				break;
+			}
+		}
+		// shift array so that pattern is centered with a bit of padding
+		shiftBoard(0-xmin, 0-ymin);
+		sizebox.value = (N+20)+'x'+(M+20);
+		setBoardSize();
+		shiftBoard(10, 10);
+		
+		wrapcheckbox.checked = false; setWrap(); //assumed, since it's not encoded
+		resetViewport();
+		updateReadout();
+		redraw();
+		setInitialState();
+	}
+	
+	
+	
+	function localSavePrompt(text, name, type){
+		var a = document.getElementById("outputfile");
+		var file = new Blob([text], {type: type});
+		a.href = URL.createObjectURL(file);
+		a.download = name;
+		a.click();
+	}
+	function localLoadPrompt() {
+		document.getElementById("inputfile").click();
+		$(document.getElementById('inputfile')).change(function(ev){
+			let files = ev.target.files;
+			let reader = new FileReader();
+			if(files.length > 0){
+				let extension = files[0].name.split('.').pop().toLowerCase();
+				reader.readAsText(files[0]);
+				reader.onload = (e)=>{
+					deserialize_detectFormat(reader.result, extension);
+				}
+			}
+		});;
+	}
 	
 	
 	function fetchupdate() {
+		let N0 = N; let M0 = M;
 		xhr = new XMLHttpRequest();
 		xhr.open("GET","http://localhost:8001/getboard?name="+boardname, true);
 		xhr.onreadystatechange=function(){
@@ -812,9 +1852,23 @@
 				let data = JSON.parse(xhr.responseText);
 				console.log(data);
 				let str = data.state.join('\n');
+				
 				rulebox.value = data.survive + '/' + data.born;
-				deserialize(str);
+				sizebox.value = (data.width || 128) + 'x' + (data.height || 128);
+				wrapcheckbox.checked = (data.wrap != undefined ? data.wrap : true);
+				wrapxcheckbox.checked = (data.wrapx != undefined ? data.wrapx : true);
+				wrapycheckbox.checked = (data.wrapy != undefined ? data.wrapx : true);
+				paletteselect.value = (data.palette != undefined ? data.palette : palette);
+				edgebox.value = data.edgestate || 0;
+				
+				setBoardSize();
 				setSBrules();
+				setWrap();
+				edgestate = parseInt(edgebox.value) || 0;
+				palette = paletteselect.value;
+				setPaletteTableColors();
+				deserialize(str);
+				if(N !== N0 || M !== M0){ resetViewport(); }
 				//@todo if timer expired, stop updating, lock changes, and start stepping through
 			}
 		}
@@ -835,7 +1889,9 @@
 		xhr.open("POST","http://localhost:8001/setboard?name="+boardname, true);
 		let survstr = ''; for(let i = 0; i < surv.length; i++){ if(!isNaN(parseInt(surv[i]))){survstr += surv[i];} }
 		let bornstr = ''; for(let i = 0; i < born.length; i++){ if(!isNaN(parseInt(born[i]))){bornstr += born[i];} }
-		let data = JSON.stringify( { "name":boardname, "survive":survstr, "born":bornstr, "state":serialize().split('\n') } );
+		let data = JSON.stringify( { "name":boardname, "survive":survstr, "born":bornstr, "width":N, "height":M,
+									 "wrap":wrap, "wrapx":wrapx, "wrapy":wrapy, "edgestate":edgestate,
+									 "palette":palette, "state":serialize().split('\n') } );
 		xhr.send(data);
 	}
 	
@@ -847,7 +1903,14 @@
 				let data = JSON.parse(xhr.responseText);
 				console.log(data);
 				let str = data.boards.join(', ');
-				alert(str);
+				let s = prompt('Saved boards:\n'+str+'\n\nEnter a board to load, or leave blank to cancel:','');
+				if(s.length > 0){
+					boardname = s.replace("/","_") || "default";
+					channelIO.value = boardname;
+					fetchupdate();
+					autoStepping = false;
+					resetViewport();
+				}
 			}
 		}
 		xhr.send();

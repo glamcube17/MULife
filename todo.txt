@@ -1,0 +1,12 @@
+- REFACTOR
+	-move helper functions into module
+	-move style to separate css file
+	-move script to separate js file
+
+- get mysql to work again
+
+- customizable seeding parameters
+
+- nicer display for list boards
+
+- ensure sync properly with multiple boards
