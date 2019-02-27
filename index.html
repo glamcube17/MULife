@@ -102,7 +102,7 @@
 						<p><br /></p>
 						
 						<h5>Paint States</h5>
-						<textarea class='field' name='paintIO' id='paintIO' cols='17' rows='1' placeholder='1/2' style='display:none'>1/2</textarea>
+						<textarea class='field' name='paintIO' id='paintIO' cols='17' rows='1' placeholder='1/0' style='display:none'>1/0</textarea>
 						<!-- <div class='row'> -->
 							<!-- <button class='button column' onclick='setPaintStates()'>Apply</button> -->
 							<!-- <button class='button column' onclick='paintbox.value=("1/2"); setPaintStates()'>Default</button> -->
@@ -532,7 +532,6 @@
 		}
 	}
 	setPaletteTableColors();
-	setPaintStates();
 	
 	function switchTab(ev,tabId){
 		let tabs = document.getElementsByClassName('tab');
@@ -556,7 +555,8 @@
 	var edgestate = 0;
 	
 	var paintLeft = 1;
-	var paintRight = 2;
+	var paintRight = 0;
+	setPaintStates();
 	
 	var celw = context.canvas.width/N;
 	var celh = context.canvas.height/M;
@@ -1358,7 +1358,8 @@
 		let survstr = ''; for(let i = 0; i < surv.length; i++){ if(!isNaN(parseInt(surv[i]))){survstr += surv[i];} }
 		let bornstr = ''; for(let i = 0; i < born.length; i++){ if(!isNaN(parseInt(born[i]))){bornstr += born[i];} }
 		let data = "";
-		data += '#MCell 4.00\n#GAME Life';
+		data += '#MCell 4.00';
+		data += '\n#GAME Life';
 		data += '\n#RULE '+survstr+'/'+bornstr;
 		data += '\n#SPEED '+autoStepRate;
 		data += '\n#BOARD '+N+'x'+M;
