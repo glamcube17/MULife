@@ -16,3 +16,9 @@
 *mysql-8.0.13* #@todo yeah... ok just gonna... figure something else out later.
 
 *boards/* # don't put every single change to any board state in the git history, please
+*.json #stop it please
+*.mcl #see above
+
+*.swp
+
+
