@@ -36,14 +36,16 @@ http.createServer(function(request, response){
         console.log("request for page received");
         
         fs.readFile("index.html", function (error, pgResp) {
-            if(error) {
-                response.writeHead(404);
-                response.write('Contents you are looking are Not Found');
-            }else {
-                response.writeHead(200, { 'Content-Type': 'text/html' });
-                response.write(pgResp);
-            }
-             
+            if(error) {response.writeHead(404);response.write('Not Found');
+            }else { response.writeHead(200, { 'Content-Type': 'text/html' }); response.write(pgResp); }
+            response.end();
+        });
+    }
+    if(path=="/css/uibase.css"){
+        console.log("request for stylesheet received");
+        fs.readFile("css/uibase.css", function (error, pgResp) {
+            if(error) {response.writeHead(404);response.write('Not Found');
+            }else { response.writeHead(200, { 'Content-Type': 'text/css' }); response.write(pgResp); }
             response.end();
         });
     }
