@@ -311,7 +311,8 @@
 	
 	
 	<!-- const webserv = 'http://192.168.1.179:8001'; -->
-	var webserv = window.location.protocol + window.location.host;
+	var webserv = "http://" + window.location.host;
+	console.log(webserv);
 	
 	
 	var canvas = $("canvas")[0];
