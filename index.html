@@ -308,6 +308,11 @@
 
 	<script>
 	
+	
+	
+	const webserv = 'http://192.168.1.179:8001';
+	
+	
 	var canvas = $("canvas")[0];
 	var context = canvas.getContext("2d");
 
@@ -353,6 +358,7 @@
 	var showimportexport = false;
 	
 	var boardname = chanbox.value || 'default';
+	
 	
 	// "COLLABORATIVE web-based multi-user"
 	
@@ -1847,7 +1853,7 @@
 	function fetchupdate() {
 		let N0 = N; let M0 = M;
 		xhr = new XMLHttpRequest();
-		xhr.open("GET","http://localhost:8001/getboard?name="+boardname, true);
+		xhr.open("GET",webserv+"/getboard?name="+boardname, true);
 		xhr.onreadystatechange=function(){
 			if (xhr.readyState==4 && xhr.status==200){
 				let data = JSON.parse(xhr.responseText);
@@ -1881,13 +1887,13 @@
 	
 	function postchange(x,y,state) {
 		xhr = new XMLHttpRequest();
-		xhr.open("POST","http://localhost:8001/changeboard?x="+x+"&y="+y+"&state="+state+"&name="+boardname, true);
+		xhr.open("POST",webserv+"/changeboard?x="+x+"&y="+y+"&state="+state+"&name="+boardname, true);
 		xhr.send();
 	}
 	
 	function postboard() {
 		xhr = new XMLHttpRequest();
-		xhr.open("POST","http://localhost:8001/setboard?name="+boardname, true);
+		xhr.open("POST",webserv+"/setboard?name="+boardname, true);
 		let survstr = ''; for(let i = 0; i < surv.length; i++){ if(!isNaN(parseInt(surv[i]))){survstr += surv[i];} }
 		let bornstr = ''; for(let i = 0; i < born.length; i++){ if(!isNaN(parseInt(born[i]))){bornstr += born[i];} }
 		let data = JSON.stringify( { "name":boardname, "survive":survstr, "born":bornstr, "width":N, "height":M,
@@ -1898,7 +1904,7 @@
 	
 	function fetchboardlist() {
 		xhr = new XMLHttpRequest();
-		xhr.open("GET","http://localhost:8001/listboards", true);
+		xhr.open("GET",webserv+"/listboards", true);
 		xhr.onreadystatechange=function(){
 			if (xhr.readyState==4 && xhr.status==200){
 				let data = JSON.parse(xhr.responseText);
