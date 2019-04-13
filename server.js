@@ -34,13 +34,20 @@ http.createServer(function(request, response){
 	
 	if(path=="/mulife"){
         console.log("request for page received");
-        response.sendFile('index.html', {root: __dirname});
+        
+        fs.readFile("index.html", function (error, pgResp) {
+            if(error) {
+                response.writeHead(404);
+                response.write('Contents you are looking are Not Found');
+            }else {
+                response.writeHead(200, { 'Content-Type': 'text/html' });
+                response.write(pgResp);
+            }
+             
+            response.end();
+        });
     }
     
-	if(path=="/test"){
-		console.log("TEST");
-	}
-	
 	if(path=="/getboard"){
         let params = url.parse(request.url, true).query;
         let name = (params.name || 'default').replace(/[/\\\.]/g,''); //sanitize filepath
