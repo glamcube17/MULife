@@ -43,11 +43,13 @@ http.createServer(function(request, response){
     }
     if(path=="/css/uibase.css"){
         console.log("request for stylesheet received");
-        fs.readFile("css/uibase.css", function (error, pgResp) {
-            if(error) {response.writeHead(404);response.write('Not Found');
-            }else { response.writeHead(200, { 'Content-Type': 'text/css' }); response.write(pgResp); }
-            response.end();
-        });
+        try{
+            fs.readFile("css/uibase.css", function (error, pgResp) {
+                if(error) {response.writeHead(404);response.write('Not Found');
+                }else { response.writeHead(200, { 'Content-Type': 'text/css' }); response.write(pgResp); }
+                response.end();
+            });
+        }catch(e){console.log(e);}
     }
     
 	if(path=="/getboard"){
