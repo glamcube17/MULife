@@ -32,6 +32,11 @@ var msok = false;
 http.createServer(function(request, response){
 	var path = url.parse(request.url).pathname;
 	
+	if(path=="/index.html"){
+        console.log("request for page received");
+        response.sendFile('index.html', {root: __dirname});
+    }
+    
 	if(path=="/test"){
 		console.log("TEST");
 	}
