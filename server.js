@@ -194,11 +194,12 @@ http.createServer(function(request, response){
         // @todo figure out how to track this with db, and authentication???
 	}
     else if(path=="/listboards"){
+        console.log("request for list of saved boards received");
         let files = fs.readdirSync('./boards');
         for(let i=0; i<files.length; i++) {
             files[i] = files[i].split('.')[0];
         }
-        console.log(files);
+        // console.log(files);
         response.writeHead(200, {"Content-Type": "text/json"});
 		response.writeHead(200, {"Access-Control-Allow-Origin": "*" });
         response.end( JSON.stringify({ "boards":files }) );
