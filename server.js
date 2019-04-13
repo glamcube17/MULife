@@ -1,8 +1,7 @@
-// Run in bash with `node server.js`
+// `node server.js`
 var http = require('http'),
 	fs = require('fs'),
 	url = require('url'),
-	mysql = require('mysql'),
 	N = 128,
     M = 128;
     
@@ -32,6 +31,11 @@ var msok = false;
 
 http.createServer(function(request, response){
 	var path = url.parse(request.url).pathname;
+	
+	if(path=="/test"){
+		console.log("TEST");
+	}
+	
 	if(path=="/getboard"){
         let params = url.parse(request.url, true).query;
         let name = (params.name || 'default').replace(/[/\\\.]/g,''); //sanitize filepath
@@ -146,4 +150,4 @@ http.createServer(function(request, response){
 	}
 }).listen(8001);
 console.log("node server initialized");
-console.log("I am ready!");
+//console.log("I am ready!");
