@@ -34,14 +34,15 @@ http.createServer(function(request, response){
 	
 	if(path=="/mulife"){
         console.log("request for page received");
-        
-        fs.readFile("index.html", function (error, pgResp) {
-            if(error) {response.writeHead(404);response.write('Not Found');
-            }else { response.writeHead(200, { 'Content-Type': 'text/html' }); response.write(pgResp); }
-            response.end();
-        });
+        try{
+            fs.readFile("index.html", function (error, pgResp) {
+                if(error) {response.writeHead(404);response.write('Not Found');
+                }else { response.writeHead(200, { 'Content-Type': 'text/html' }); response.write(pgResp); }
+                response.end();
+            });
+        }catch(e){console.log(e);}
     }
-    if(path=="/css/uibase.css"){
+    else if(path=="/css/uibase.css"){
         console.log("request for stylesheet received");
         try{
             fs.readFile("css/uibase.css", function (error, pgResp) {
@@ -51,8 +52,56 @@ http.createServer(function(request, response){
             });
         }catch(e){console.log(e);}
     }
+    else if(path=="/css/jquery-ui.css"){
+        console.log("request for other stylesheet received");
+        try{
+            fs.readFile("css/jquery-ui.css", function (error, pgResp) {
+                if(error) {response.writeHead(404);response.write('Not Found');
+                }else { response.writeHead(200, { 'Content-Type': 'text/css' }); response.write(pgResp); }
+                response.end();
+            });
+        }catch(e){console.log(e);}
+    }
+    else if(path=="/css/jquery-ui-1.12.icon-font.css"){
+        console.log("request for other other stylesheet received");
+        try{
+            fs.readFile("css/jquery-ui-1.12.icon-font.css", function (error, pgResp) {
+                if(error) {response.writeHead(404);response.write('Not Found');
+                }else { response.writeHead(200, { 'Content-Type': 'text/css' }); response.write(pgResp); }
+                response.end();
+            });
+        }catch(e){console.log(e);}
+    }
+    else if(path=="/javascript/jquery.js"){
+        console.log("request for jquery files received");
+        try{
+            fs.readFile("javascript/jquery.js", function (error, pgResp) {
+                if(error) {response.writeHead(404);response.write('Not Found');
+                }else { response.writeHead(200, { 'Content-Type': 'text/js' }); response.write(pgResp); }
+                response.end();
+            });
+        }catch(e){console.log(e);}
+    }
+    else if(path=="/javascript/jquery-ui.js"){
+        console.log("request for other jquery files received");
+        try{
+            fs.readFile("javascript/jquery-ui.js", function (error, pgResp) {
+                if(error) {response.writeHead(404);response.write('Not Found');
+                }else { response.writeHead(200, { 'Content-Type': 'text/js' }); response.write(pgResp); }
+                response.end();
+            });
+        }catch(e){console.log(e);}
+    }
     
-	if(path=="/getboard"){
+    
+    
+    
+    
+    
+    // actual controls
+    
+    
+	else if(path=="/getboard"){
         let params = url.parse(request.url, true).query;
         let name = (params.name || 'default').replace(/[/\\\.]/g,''); //sanitize filepath
 		console.log("request for "+name+" board state recieved");
