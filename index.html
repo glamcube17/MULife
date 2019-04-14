@@ -365,12 +365,6 @@
 	// "COLLABORATIVE web-based multi-user"
 	
 	
-	//  x add nice-looking buttons to impress people / improve interface
-	//  x add multiple colors
-	//  x save initial state before stepping through
-
-	//  x save or load states to/from server with custom names
-	//  multiple channels - create/join
 	
 	//  x sync rules for each channel
 	
@@ -386,10 +380,7 @@
 	// @todo refactor this nightmare
 	
 	// @todo? wireworld
-	// x save as .mcl format
-	// save as other formats?
 	
-	// @todo multiple color palettes
 	
 	
 	var cnt=0; //generation counter
@@ -398,7 +389,9 @@
 	var autoFetching = false; //true for prod
 	var autoStepRate = 0;
 	
-	var colormode = true; //@todo obsolete?
+	var autoFetchRate = 5000; //5 s
+	
+	var colormode = true; //@todo obsolete
 	
 	
 	var numLiveStates = 35; //max to generate when randomizing and such
@@ -915,44 +908,51 @@
 				let neighbors = cellneighbors[i][j];
 				let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
 				if(isalive){
-					//find state with most occurrences
-					let statecounts = {};
-					for(let I = -1; I <= 1; I++){
-						for(let J = -1; J <= 1; J++){
-							let st = oldcells[(N+i+I)%N][(M+j+J)%M]; //state index
-							<!-- if(!wrap && ( i+I >= N || j+J >= M || i+I < 0 || j+J < 0 ) ){ st = edgestate; } -->
-							if(!( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) )){
-								st = edgestate;
-							}
-							if(st > 0){
-								statecounts[st] = statecounts[st] ? statecounts[st]+1 : 1; //state count
+					if(!wasalive){
+						//find state with most occurrences
+						let statecounts = {};
+						for(let I = -1; I <= 1; I++){
+							for(let J = -1; J <= 1; J++){
+								let st = oldcells[(N+i+I)%N][(M+j+J)%M]; //state index
+								<!-- if(!wrap && ( i+I >= N || j+J >= M || i+I < 0 || j+J < 0 ) ){ st = edgestate; } -->
+								if(!( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) )){
+									st = edgestate;
+								}
+								if(st > 0){
+									statecounts[st] = statecounts[st] ? statecounts[st]+1 : 1; //state count
+								}
 							}
 						}
-					}
-					let st = 0, max = 0, collisions = 0, statesum = 0;
-					for(const [k, v] of Object.entries(statecounts)) {
-						<!-- if(v > max || v === max && (i+j+v+max)%2 === 0){ -->
-						if(v > max){
-							max = v;
-							st = k;
-							collisions = 0;
+						let st = 0, max = 0, collisions = 0, statesum = 0;
+						for(const [k, v] of Object.entries(statecounts)) {
+							<!-- if(v > max || v === max && (i+j+v+max)%2 === 0){ -->
+							if(v > max){
+								max = v;
+								st = k;
+								collisions = 0;
+							}
+							else if(v === max){ collisions++; }
+							<!-- statesum += parseInt(k); -->
+							statesum += parseInt(k)*v;
 						}
-						else if(v === max){ collisions++; }
-						statesum += parseInt(k);
+						if(collisions > 0){
+							<!-- st = ( statecounts.keys().reduce( (sum,k)=>{sum+parseInt(k), 0} ) -1)%maxLiveState+1; -->
+							<!-- st = ( statesum -1 )%maxLiveState+1; -->
+							<!-- st = Math.round(statesum / statecounts.length); -->
+							<!-- st = Math.round(statesum / neighbors); -->
+							<!-- st = ( Math.round(statesum / statecounts.length) -1)%maxLiveState + 1; -->
+							<!-- st = ( statesum + statecounts.length -1 )%maxLiveState+1; -->
+							st = ( Math.round(statesum / statecounts.length) + statecounts.length -1)%maxLiveState + 1;
+						}
+						<!-- st = Math.round(statesum / statecounts.length); -->
+						
+						//if 0 neighbors
+						if(!st){
+							if(wasalive){ st = cells[i][j]; }
+							else{ st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; } //pseudorandom but fixed
+						}
+						cells[i][j] = st; //max value
 					}
-					if(collisions > 0){
-						<!-- st = ( statecounts.keys().reduce( (sum,k)=>{sum+parseInt(k), 0} ) -1)%maxLiveState+1; -->
-						<!-- st = ( statesum -1 )%maxLiveState+1; -->
-						st = Math.round(statesum / statecounts.length);
-					}
-					<!-- st = Math.round(statesum / statecounts.length); -->
-					
-					//if 0 neighbors
-					if(!st){
-						if(wasalive){ st = cells[i][j]; }
-						else{ st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; } //pseudorandom but fixed
-					}
-					cells[i][j] = st; //max value
 				}else{
 					cells[i][j] = 0;
 				}
@@ -984,7 +984,7 @@
 		while(true){
 			while(autoFetching){
 				await fetchupdate();
-				await sleep(10000); //fetch every 10 seconds
+				await sleep(autoFetchRate); //fetch every 10 seconds
 			}
 			while(!autoFetching){
 				await sleep(200);
