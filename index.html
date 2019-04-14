@@ -264,7 +264,7 @@
 								<button class='button column' onclick='recenterBoard();'>Center Pattern</button>
 								<button class='button column' onclick='fillCircle();'>Fill Circle</button>
 								<button class='button column' onclick='replaceColor();'>Replace States</button>
-								<button class='button column' onclick='clearBoard(); seedBoard();'>Seed Cells</button>
+								<button class='button column' onclick='clearBoard(); seedBoardPrompt();'>Seed Cells</button>
 							</div>
 							<h5>Analysis</h5>
 							<div class='row'>
@@ -942,7 +942,8 @@
 							<!-- st = Math.round(statesum / neighbors); -->
 							<!-- st = ( Math.round(statesum / statecounts.length) -1)%maxLiveState + 1; -->
 							<!-- st = ( statesum + statecounts.length -1 )%maxLiveState+1; -->
-							st = ( Math.round(statesum / statecounts.length) + statecounts.length -1)%maxLiveState + 1;
+							<!-- st = ( Math.round(statesum / statecounts.length) + statecounts.length -1)%maxLiveState + 1; -->
+							st = ( Math.round(statesum / neighbors) + statecounts.length -1)%maxLiveState + 1;
 						}
 						<!-- st = Math.round(statesum / statecounts.length); -->
 						
