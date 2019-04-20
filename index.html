@@ -587,6 +587,11 @@
 			row.push(0);
 		}
 		cellneighbors.push(row);
+		row = [];
+		for(let j=0; j<M; j++){
+			row.push(true);
+		}
+		cellchanged.push(row);
 	}
 	setSBrules(); //text entered in boxes reapplied on refresh
 	autoStep();
@@ -608,7 +613,7 @@
 				<!-- cnt = 0; //new initial state -->
 				setInitialState();
 				autoStepping = false;
-				if(keycode == 1){ paintingLeft = true; }else{ paintingRight = true; }
+				if(keycode == 1){ paintingLeft = true; paintingRight = false; }else{ paintingRight = true; paintingLeft = false; }
 			}else{ //color pick
 				let st = cells[i][j];
 				let text = (' '+paintbox.value+' ').split('/');
@@ -749,31 +754,91 @@
 	
 	var mousex = null;
 	var mousey = null;
+	var drawnx = null;
+	var drawny = null;
 	var mouseIn = false;
 	var paintingLeft = false;
 	var paintingRight = false;
 	canvas.addEventListener('mousemove', onMouseUpdate, false);
 	<!-- canvas.addEventListener('mouseenter', onMouseUpdate, false); -->
 	function onMouseUpdate(e) {
+		let prevx = drawnx; let prevy = drawny;
 		mousex = e.offsetX;
 		mousey = e.offsetY;
 		if(paintingLeft || paintingRight){
+			drawnx = mousex; drawny = mousey;
 			let i = Math.floor( ( e.offsetX - panX ) / zoom / celw );
 			let j = Math.floor( ( e.offsetY - panY ) / zoom / celh );
 			let newState = (paintingLeft?paintLeft:paintRight);
-			setCell(i,j,newState);
-			if(autoFetching){ //syncing
-				postchange(i,j, newState);
+			
+			if(prevx != null && prevy != null){
+				let i0 = Math.floor( ( prevx - panX ) / zoom / celw );
+				let j0 = Math.floor( ( prevy - panY ) / zoom / celh );
+				if(i != i0 || j != j0){
+					Bresenham(i0,j0,i,j,newState);
+				}
+			}else{
+				setCell(i,j,newState);
+				if(autoFetching){ //syncing
+					postchange(i,j, newState);
+				}
 			}
+			
 			<!-- cnt = 0; //new initial state -->
 			setInitialState();
 			autoStepping = false;
 		}
+		else{ drawnx = null; drawny = null; }
 		redraw();
 	}
 	canvas.addEventListener('mouseenter', ()=>{ mouseIn = true; }, false);
 	canvas.addEventListener('mouseleave', ()=>{ mouseIn = false; redraw(); }, false);
-	canvas.addEventListener('mouseup', ()=>{ paintingLeft = false; paintingRight = false; } );
+	canvas.addEventListener('mouseup', ()=>{ paintingLeft = false; paintingRight = false; drawnx = null; drawny = null; } );
+	
+	function Bresenham(x1,y1,x2,y2,st){
+		let dx = x2-x1; let dy = y2-y1;
+		
+		let i1 = Math.min(x1,x2); let i2 = Math.max(x1,x2);
+		let j1 = Math.min(y1,y2); let j2 = Math.max(y1,y2);
+		let ex = Math.abs(dx * (1 - y1 - j1) - dy * (1 - x1 - i1));
+		let ey = Math.abs(dy * (1 - x1 - i1) - dx * (1 - y1 - j1));
+		
+		let dirx = Math.sign(dx);
+		let diry = Math.sign(dy);
+		
+		if( Math.abs(dy) < Math.abs(dx) ){
+			let j = y1;
+			let x = x1; let y = y1;
+			for(let i = i1; i < i2; i++){
+			
+				setCell(Math.floor(x),Math.floor(y),st);
+				if(autoFetching){ postchange(Math.floor(x),Math.floor(y), st); }
+				
+				if( ey >= 0 ){
+					y += Math.abs(dy/dx) * diry;
+					ey -= Math.abs(dx);
+				}
+				x += 1*dirx;
+				ey += Math.abs(dy);
+			}
+		}else{
+			let i = x1;
+			x = x1; y = y1;
+			for(let j = j1; j < j2; j++){
+				
+				setCell(Math.floor(x),Math.floor(y),st);
+				if(autoFetching){ postchange(Math.floor(x),Math.floor(y), st); }
+			
+				if( ex >= 0 ){
+					x += Math.abs(dx/dy) * dirx;
+					ex -= Math.abs(dy);
+				}
+				y += 1*diry;
+				ex += Math.abs(dx);
+			}
+		}
+	}
+	
 	
 	var redrawingFlag = 0; //to avoid wasting effort on multiple asynchronous redraws at once
 	function redraw(){
@@ -782,16 +847,18 @@
 		context.clearRect(0,0,canvas.width,canvas.height);
 		context.translate(panX,panY);
 		context.scale(zoom,zoom);
+		context.fillStyle=getBackgroundColor(0,0);
+		context.fillRect(0,0,celw*N,celh*M);
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < M; j++){
 				let isalive = !!(cells[i][j]);
 				if(isalive){
 					context.fillStyle=getStateColor(cells[i][j]);
+					context.fillRect(i*celw,j*celh,celw,celh);
 				}else{
-					context.fillStyle=getBackgroundColor(i,j);
+					<!-- context.fillStyle=getBackgroundColor(i,j); -->
+					<!-- context.fillRect(i*celw,j*celh,celw,celh); -->
 				}
-				<!-- context.fillRect((s+i*celw+panX)%s,(s+j*celh+panY)%s,celw,celh); //wrap view -->
-				context.fillRect(i*celw,j*celh,celw,celh);
 			}
 		}
 		
@@ -892,30 +959,36 @@
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < M; j++){
 				
-				//count live neighbors
-				let neighborcount = 0;
 				let changed = false;
 				for(let I = -1; I < 2; I++){
 					for(let J = -1; J < 2; J++){
-						if(I!=0||J!=0){
-							<!-- let ison = (wrap || ( i+I < N && j+J < M && i+I >= 0 && j+J >= 0)); -->
-							let ison = ( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) );
-							let isoverride = (!ison && edgestate > 0);
-							if( ( ison && oldcells[(N+i+I)%N][(M+j+J)%M] > 0 ) || isoverride ){
-								neighborcount++;
-							}
-						}
-						if( cellchanged[(N+i+I)%N][(M+j+J)%M] ){ changed = true; }
+						if( cellchanged[(N+i+I)%N][(M+j+J)%M] ){ changed = true; break; }
 					}
+					if(changed){break;}
 				}
-				cellneighbors[i][j] = neighborcount;
 				
 				if(changed){
+					cellchanged[i][j] = true;
+					
+					//count live neighbors
+					let neighborcount = 0;
+					for(let I = -1; I < 2; I++){
+						for(let J = -1; J < 2; J++){
+							if(I!=0||J!=0){
+								<!-- let ison = (wrap || ( i+I < N && j+J < M && i+I >= 0 && j+J >= 0)); -->
+								let ison = ( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) );
+								let isoverride = (!ison && edgestate > 0);
+								if( ( ison && oldcells[(N+i+I)%N][(M+j+J)%M] > 0 ) || isoverride ){
+									neighborcount++;
+								}
+							}
+						}
+					}
+					cellneighbors[i][j] = neighborcount;
+					
 					let wasalive = !!oldcells[i][j];
 					let neighbors = cellneighbors[i][j];
 					let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
-					<!-- cellchanged[i][j] = (isalive != wasalive); -->
-					cellchanged[i][j] = true;
 					if(isalive){
 						if(!wasalive){
 							//find state with most occurrences
