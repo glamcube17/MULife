@@ -311,7 +311,8 @@
 	
 	
 	<!-- const webserv = 'http://192.168.1.179:8001'; -->
-	var webserv = "http://" + window.location.host;
+	<!-- var webserv = "http://" + window.location.host; -->
+	var webserv = "http://localhost:8001/";
 	console.log(webserv);
 	
 	
@@ -574,6 +575,7 @@
 	// cells[N][M], cells[width][height], cells[i][j]
 	var cells = [];
 	var cellneighbors = [];
+	var cellchanged = [];
 	for(let i=0; i<N; i++){
 		let row = [];
 		for(let j=0; j<M; j++){
@@ -873,26 +875,11 @@
 		
 		while(cells.length < N){cells.push(new Array(M).fill(0));}
 		while(cellneighbors.length < N){cellneighbors.push(new Array(M).fill(0));}
+		while(cellchanged.length < N){cellchanged.push(new Array(M).fill(true));}
 		for(let i = 0; i < N; i++){
 			while(cells[i].length < M){cells[i].push(0);}
 			while(cellneighbors[i].length < M){cellneighbors[i].push(0);}
-			for(let j = 0; j < M; j++){
-				let neighborcount = 0;
-				//count live neighbors
-				for(let I = -1; I < 2; I++){
-					for(let J = -1; J < 2; J++){
-						if(I!=0||J!=0){
-							<!-- let ison = (wrap || ( i+I < N && j+J < M && i+I >= 0 && j+J >= 0)); -->
-							let ison = ( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) );
-							let isoverride = (!ison && edgestate > 0);
-							if( ( ison && cells[(N+i+I)%N][(M+j+J)%M] > 0 ) || isoverride ){
-								neighborcount++;
-							}
-						}
-					}
-				}
-				cellneighbors[i][j] = neighborcount;
-			}
+			while(cellchanged[i].length < M){cellchanged[i].push(true);}
 		}
 		
 		<!-- if(noiseRate > 0 && cnt%(101-noiseRate)==0){addNoise();} -->
@@ -904,58 +891,83 @@
 			
 		for(let i=0; i < N; i++){ 
 			for(let j=0; j < M; j++){
-				let wasalive = !!cells[i][j];
-				let neighbors = cellneighbors[i][j];
-				let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
-				if(isalive){
-					if(!wasalive){
-						//find state with most occurrences
-						let statecounts = {};
-						for(let I = -1; I <= 1; I++){
-							for(let J = -1; J <= 1; J++){
-								let st = oldcells[(N+i+I)%N][(M+j+J)%M]; //state index
-								<!-- if(!wrap && ( i+I >= N || j+J >= M || i+I < 0 || j+J < 0 ) ){ st = edgestate; } -->
-								if(!( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) )){
-									st = edgestate;
-								}
-								if(st > 0){
-									statecounts[st] = statecounts[st] ? statecounts[st]+1 : 1; //state count
-								}
+				
+				//count live neighbors
+				let neighborcount = 0;
+				let changed = false;
+				for(let I = -1; I < 2; I++){
+					for(let J = -1; J < 2; J++){
+						if(I!=0||J!=0){
+							<!-- let ison = (wrap || ( i+I < N && j+J < M && i+I >= 0 && j+J >= 0)); -->
+							let ison = ( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) );
+							let isoverride = (!ison && edgestate > 0);
+							if( ( ison && oldcells[(N+i+I)%N][(M+j+J)%M] > 0 ) || isoverride ){
+								neighborcount++;
 							}
 						}
-						let st = 0, max = 0, collisions = 0, statesum = 0;
-						for(const [k, v] of Object.entries(statecounts)) {
-							<!-- if(v > max || v === max && (i+j+v+max)%2 === 0){ -->
-							if(v > max){
-								max = v;
-								st = k;
-								collisions = 0;
+						if( cellchanged[(N+i+I)%N][(M+j+J)%M] ){ changed = true; }
+					}
+				}
+				cellneighbors[i][j] = neighborcount;
+				
+				if(changed){
+					let wasalive = !!oldcells[i][j];
+					let neighbors = cellneighbors[i][j];
+					let isalive = ( wasalive && $.inArray(neighbors, surv)!==-1 ) || ( !wasalive && $.inArray(neighbors, born)!==-1 );
+					<!-- cellchanged[i][j] = (isalive != wasalive); -->
+					cellchanged[i][j] = true;
+					if(isalive){
+						if(!wasalive){
+							//find state with most occurrences
+							let statecounts = {};
+							for(let I = -1; I <= 1; I++){
+								for(let J = -1; J <= 1; J++){
+									let st = oldcells[(N+i+I)%N][(M+j+J)%M]; //state index
+									<!-- if(!wrap && ( i+I >= N || j+J >= M || i+I < 0 || j+J < 0 ) ){ st = edgestate; } -->
+									if(!( ((wrap && wrapx) || ( i+I < N && i+I >= 0)) && ((wrap && wrapy) || ( j+J < M && j+J >= 0)) )){
+										st = edgestate;
+									}
+									if(st > 0){
+										statecounts[st] = statecounts[st] ? statecounts[st]+1 : 1; //state count
+									}
+								}
 							}
-							else if(v === max){ collisions++; }
-							<!-- statesum += parseInt(k); -->
-							statesum += parseInt(k)*v;
-						}
-						if(collisions > 0){
-							<!-- st = ( statecounts.keys().reduce( (sum,k)=>{sum+parseInt(k), 0} ) -1)%maxLiveState+1; -->
-							<!-- st = ( statesum -1 )%maxLiveState+1; -->
+							let st = 0, max = 0, collisions = 0, statesum = 0;
+							for(const [k, v] of Object.entries(statecounts)) {
+								<!-- if(v > max || v === max && (i+j+v+max)%2 === 0){ -->
+								if(v > max){
+									max = v;
+									st = k;
+									collisions = 0;
+								}
+								else if(v === max){ collisions++; }
+								<!-- statesum += parseInt(k); -->
+								statesum += parseInt(k)*v;
+							}
+							if(collisions > 0){
+								<!-- st = ( statecounts.keys().reduce( (sum,k)=>{sum+parseInt(k), 0} ) -1)%maxLiveState+1; -->
+								<!-- st = ( statesum -1 )%maxLiveState+1; -->
+								<!-- st = Math.round(statesum / statecounts.length); -->
+								<!-- st = Math.round(statesum / neighbors); -->
+								<!-- st = ( Math.round(statesum / statecounts.length) -1)%maxLiveState + 1; -->
+								<!-- st = ( statesum + statecounts.length -1 )%maxLiveState+1; -->
+								<!-- st = ( Math.round(statesum / statecounts.length) + statecounts.length -1)%maxLiveState + 1; -->
+								st = ( Math.round(statesum / neighbors) + statecounts.length -1)%maxLiveState + 1;
+							}
 							<!-- st = Math.round(statesum / statecounts.length); -->
-							<!-- st = Math.round(statesum / neighbors); -->
-							<!-- st = ( Math.round(statesum / statecounts.length) -1)%maxLiveState + 1; -->
-							<!-- st = ( statesum + statecounts.length -1 )%maxLiveState+1; -->
-							<!-- st = ( Math.round(statesum / statecounts.length) + statecounts.length -1)%maxLiveState + 1; -->
-							st = ( Math.round(statesum / neighbors) + statecounts.length -1)%maxLiveState + 1;
+							
+							//if 0 neighbors
+							if(!st){
+								if(wasalive){ st = cells[i][j]; }
+								else{ st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; } //pseudorandom but fixed
+							}
+							cells[i][j] = st; //max value
 						}
-						<!-- st = Math.round(statesum / statecounts.length); -->
-						
-						//if 0 neighbors
-						if(!st){
-							if(wasalive){ st = cells[i][j]; }
-							else{ st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; } //pseudorandom but fixed
-						}
-						cells[i][j] = st; //max value
+					}else{
+						cells[i][j] = 0;
 					}
 				}else{
-					cells[i][j] = 0;
+					cellchanged[i][j] = false;
 				}
 			}
 		}
@@ -1035,6 +1047,11 @@
 	function setInitialState(){
 		cnt = 0;
 		initialstate = serialize();
+		for(let i = 0; i < N; i++){
+			for(let j = 0; j < M; j++){
+				cellchanged[i][j] = true;
+			}
+		}
 	}
 	
 	function countCells(){
