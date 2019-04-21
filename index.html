@@ -605,7 +605,7 @@
 		let j = Math.floor( ( ev.offsetY - panY ) / zoom / celh );
 		let keycode = ( ev.keyCode ? ev.keyCode : ev.which ); //1: left; 3: right
 		if(keycode == 1 || keycode == 3){
-			if(!ev.altKey && !ev.shiftKey){
+			if(!ev.altKey && !ev.ctrlKey){
 				let paintState = (keycode == 1 ? paintLeft : paintRight);
 				let newState = (cells[i][j] !== paintState ? paintState : 0);
 				setCell(i,j,newState);
