@@ -211,17 +211,20 @@
 							<td>L/RMB+Drag</td>
 							<td>Paint cells</td>
 						</tr><tr>
-							<td>Shift+L/RMB</td>
+							<td>Ctrl+L/RMB</td>
+							<td>Flood Fill</td>
+						</tr><tr>
+							<td>Alt+L/RMB</td>
 							<td>Color pick</td>
+						</tr><tr>
+							<td>z</td>
+							<td>Undo</td>
 						</tr><tr>
 							<td>i</td>
 							<td>Initial state</td>
 						</tr><tr>
-							<td>R</td>
-							<td>Random State</td>
-						</tr><tr>
-							<td>C</td>
-							<td>Clear State</td>
+							<td>R, C</td>
+							<td>Random/Clear State</td>
 						</tr><tr>
 							<th>Simulation</th>
 						</tr><tr>
@@ -236,13 +239,13 @@
 						</tr><tr>
 							<th>Viewport</th>
 						</tr><tr>
-							<td>Arrows,WASD</td>
+							<td>Arrows,wasd,hjkl</td>
 							<td>Pan</td>
 						</tr><tr>
 							<td>Shift+Pan</td>
 							<td>Pan Faster</td>
 						</tr><tr>
-							<td>+/-</td>
+							<td>+/-, ]/[</td>
 							<td>Zoom In/Out</td>
 						</tr><tr>
 							<td>0</td>
@@ -602,7 +605,7 @@
 		let j = Math.floor( ( ev.offsetY - panY ) / zoom / celh );
 		let keycode = ( ev.keyCode ? ev.keyCode : ev.which ); //1: left; 3: right
 		if(keycode == 1 || keycode == 3){
-			if(!ev.shiftKey){
+			if(!ev.altKey && !ev.shiftKey){
 				let paintState = (keycode == 1 ? paintLeft : paintRight);
 				let newState = (cells[i][j] !== paintState ? paintState : 0);
 				setCell(i,j,newState);
@@ -614,12 +617,16 @@
 				setInitialState();
 				autoStepping = false;
 				if(keycode == 1){ paintingLeft = true; paintingRight = false; }else{ paintingRight = true; paintingLeft = false; }
-			}else{ //color pick
+			}else if(!ev.ctrlKey){ //color pick
 				let st = cells[i][j];
 				let text = (' '+paintbox.value+' ').split('/');
 				if(keycode == 1){ paintbox.value = st+'/'+text[1].trim(); }
 				else{             paintbox.value = text[0].trim()+'/'+st; }
 				setPaintStates();
+			}else{ //flood fill
+				let st0 = cells[i][j];
+				let st1 = (keycode == 1 ? paintLeft : paintRight);
+				floodFill(i,j,st0,st1);
 			}
 		}
 	});
@@ -690,6 +697,13 @@
 				redraw();
 			}
 			break;
+		case "z": case "Z":
+			if(previnitialstate){
+				deserialize(previnitialstate);
+				if(!ev.shiftKey){ autoStepping = false; }
+				redraw();
+			}
+			break;
 		<!-- case "n": //@todo move this to a button or something -->
 			<!-- noiseRate = Math.min(100,noiseRate+1); -->
 			<!-- break; -->
@@ -708,20 +722,45 @@
 		case "ArrowLeft": case "ArrowRight": case "ArrowUp": case "ArrowDown":
 		case "a": case "d": case "w": case "s":
 		case "A": case "D": case "W": case "S":
+		case "h": case "j": case "k": case "l":
+		case "H": case "J": case "K": case "L":
+		case "4": case "2": case "8": case "6":
+		case "$": case "@": case "*": case "^":
+		
+		case "y": case "u": case "b": case "n":
+		case "Y": case "U": case "B": case "N":
+		case "7": case "9": case "1": case "3":
+		case "&": case "(": case "!": case "#":
 			ev.preventDefault(); //prevent window from scrolling
 			let dmul = (ev.shiftKey ? 11 : 1);
 			let dx = 0; let dy = 0;
 			switch(ev.key){
-				case "ArrowLeft": case "a": case "A":
+				case "ArrowLeft":  case "a": case "A": case "h": case "H": case "4": case "$":
 					dx =  sx/N*zoom * dmul;
 					break;
-				case "ArrowRight": case "d": case "D":
+				case "ArrowRight": case "d": case "D": case "l": case "L": case "6": case "^":
 					dx = -sx/N*zoom * dmul;
 					break;
-				case "ArrowUp": case "w": case "W":
+				case "ArrowUp":    case "w": case "W": case "k": case "K": case "8": case "*":
 					dy =  sy/M*zoom * dmul;
 					break;
-				case "ArrowDown": case "s": case "S":
+				case "ArrowDown":  case "s": case "S": case "j": case "J": case "2": case "@":
+					dy = -sy/M*zoom * dmul;
+					break;
+				case "y": case "Y": case "7": case "&":
+					dx =  sx/N*zoom * dmul;
+					dy =  sy/M*zoom * dmul;
+					break;
+				case "u": case "U": case "9": case "(":
+					dx = -sx/N*zoom * dmul;
+					dy =  sy/M*zoom * dmul;
+					break;
+				case "b": case "B": case "1": case "!":
+					dx =  sx/N*zoom * dmul;
+					dy = -sy/M*zoom * dmul;
+					break;
+				case "n": case "N": case "3": case "#":
+					dx = -sx/N*zoom * dmul;
 					dy = -sy/M*zoom * dmul;
 					break;
 			}
@@ -932,6 +971,7 @@
 	
 	
 	var initialstate = null;
+	var previnitialstate = null;
 	//Step through the state
 	function doStep(){
 		if(cnt === 0){ initialstate = serialize(); }
@@ -1119,6 +1159,7 @@
 	
 	function setInitialState(){
 		cnt = 0;
+		if(initialstate){ previnitialstate = [...initialstate]; }
 		initialstate = serialize();
 		for(let i = 0; i < N; i++){
 			for(let j = 0; j < M; j++){
@@ -1190,6 +1231,32 @@
 		<!-- redraw(); -->
 		<!-- cnt = 0; -->
 	<!-- } -->
+	
+
+	
+	function floodFill(x,y,st0,st1){
+		if(st0 === st1){ return; }
+		let q = [];
+		q.push([x,y]);
+		
+		// Below arrays details all 8 possible movements
+		let row = [ -1, -1, -1,  0, 0,  1, 1, 1 ];
+		let col = [ -1,  0,  1, -1, 1, -1, 0, 1 ];
+
+		while(q.length > 0){
+			let pt = q.shift();
+			let x = pt[0]; let y = pt[1];
+			cells[x][y] = st1;
+			if(q.length < 100){
+				for(k = 0; k < 8; k++){
+					if(cells[(x+row[k] +N)%N][(y+col[k] +M)%M] === st0){
+						q.push([(x+row[k] +N)%N,(y+col[k] +M)%M]);
+					}
+				}
+			}
+		}
+		setInitialState();
+	}
 	
 	function fillCircle(){
 		let r = parseInt(prompt('Radius of circle:','10'));
@@ -1422,7 +1489,13 @@
 	
 	function randomizeSize(){
 		let w = 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		w += 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		w += 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		w -= 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
 		let h = 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		h += 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		h += 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
+		h -= 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3)) + 2**(Math.round(3+Math.random()*3));
 		sizebox.value = w + 'x' + h;
 		setBoardSize();
 		setInitialState();
