@@ -1071,7 +1071,7 @@
 							
 							//if 0 neighbors
 							<!-- if(!st){ -->
-							if(neighbors === 0){
+							if(neighbors === 0 || st === 0){
 								st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; //pseudorandom but fixed
 							}
 							cells[i][j] = st;
