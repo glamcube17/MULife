@@ -256,6 +256,7 @@
 					<!-- <button class='button' class='column' onclick="showabout = !showabout; document.getElementById('aboutdiv').style.display = (showabout ? 'block' : 'none');">About</button> -->
 					<div class='row'>
 						<button class='button column tablink button_on' onclick='switchTab(event,"aboutTab");'>About</button>
+						<button class='button column tablink' onclick='switchTab(event,"optionsTab");'>Options</button>
 						<button class='button column tablink' onclick='switchTab(event,"extrasTab");'>Extras</button>
 					</div>
 					<div class='tabcontainer'>
@@ -282,6 +283,16 @@
 							<div class='row'>
 								<!-- <button class='button' class='column' onclick='messWithIt();'>Shuffle Board</button> -->
 								<button class='button column' id='chaosButton' onclick='toggleChaos();'>CHAOS CHAOS</button>
+							</div>
+						</div>
+						<div class='tab' id='optionsTab'>
+							<h4>More Rules</h4>
+							<h5>Color Rule</h5>
+							<textarea class='field' name='cruleIO' id='cruleIO' cols='17' rows='1' placeholder='A+U'>A+U</textarea>
+							<div class='row'>
+								<button class='button column' onclick='setColorRule();'>Apply</button>
+								<button class='button column' onclick='crulebox.value = "A+U"; setColorRule();'>Default</button>
+								<button class='button column' onclick='alert("An expression for determining the state of a newly born cell when there is no majority state among its neighbors. Usable values:\nS - sum of all neighbor states\nN - number of live neighbors\nA - average of all neighbor states (S/N)\nU - number of *unique* live neighbor states\nInt or float literals\nUsable operators: + - * / ^ % ( )")'>Help</button>
 							</div>
 						</div>
 						<div class='tab' id='aboutTab' style='font-size:75%; display:block;'>
@@ -339,12 +350,14 @@
 	var sizebox = document.getElementById("sizeIO");
 	var paintbox= document.getElementById("paintIO");
 	var edgebox= document.getElementById("edgeIO");
+	var crulebox= document.getElementById("cruleIO");
 	textbox.contentEditable = "true";
 	chanbox.contentEditable = "true";
 	rulebox.contentEditable = "true";
 	sizebox.contentEditable = "true";
 	paintbox.contentEditable ="true";
 	edgebox.contentEditable ="true";
+	crulebox.contentEditable ="true";
 	
 	var paletteselect = document.getElementById("paletteselect");
 	
@@ -1065,13 +1078,17 @@
 								<!-- st = ( Math.round(statesum / statecounts.length) -1)%maxLiveState + 1; -->
 								<!-- st = ( statesum + statecounts.length -1 )%maxLiveState+1; -->
 								<!-- st = ( Math.round(statesum / statecounts.length) + statecounts.length -1)%maxLiveState + 1; -->
-								st = ( Math.round(statesum / neighbors) + statecounts.length -1)%maxLiveState + 1;
+								// A+U   T/N+2U    A+NU       M+N
+								
+								<!-- st = ( Math.round(statesum / neighbors) + Object.keys(statecounts).length -1)%maxLiveState + 1; -->
+								let res = EvalColorRule(neighbors, Math.round(statesum/neighbors), statesum, Object.keys(statecounts).length);
+								st = (res -1)%maxLiveState+1; while(st < 1){ st += maxLiveState; }
 							}
 							<!-- st = Math.round(statesum / statecounts.length); -->
 							
 							//if 0 neighbors
 							<!-- if(!st){ -->
-							if(neighbors === 0 || st === 0){
+							if(neighbors === 0){
 								st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; //pseudorandom but fixed
 							}
 							cells[i][j] = st;
@@ -1437,6 +1454,80 @@
 		for(i = 0; i < survstr.length; i++){ surv.push(parseInt(survstr[i])); }
 		for(i = 0; i < bornstr.length; i++){ born.push(parseInt(bornstr[i])); }
 		cnt=0;
+	}
+	
+	let colrule = ['A','U','+']; //postfix notation
+	function setColorRule(){
+		//convert to postfix notation using the Shunting-Yard Algorithm
+		let inq = crulebox.value.split('');
+		let outq = [];
+		let opstack = [];
+		let prec = {'+':0,'-':0,'*':1,'/':1,'%':1,'^':2,'(':3}; //operator precedence
+		let assoc = {'+':false,'-':false,'*':false,'/':false,'%':false,'^':true, '(':true}; //whether operator is right-associative
+		while(inq.length > 0){
+			let token = inq.shift();
+			switch(token){
+				case 'S': case 'N': case 'A': case 'U': case 'P':
+					outq.push(token);
+					break;
+				case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '0': case '.':
+					while(inq.length > 0 && !isNaN(parseFloat(token + inq[0] + '0'))){ token.push(inq.shift()); }
+					outq.push(parseFloat(token));
+					break;
+				case '+': case '-': case '*': case '/': case '^': case '%':
+					while( opstack.length > 0 && opstack[opstack.length-1] !== '(' && (
+					       prec(opstack[opstack.length-1]) > prec[token]
+					       || ( prec[opstack[opstack.length-1]] === prec[token] && !assoc[opstack[opstack.length-1]] )     )){
+						outq.push(opstack.pop());
+					}
+					opstack.push(token);
+					break;
+				case '(':
+					opstack.push(token);
+					break;
+				case ')':
+					while( opstack[opstack.length-1] !== '(' ){
+						outq.push(opstack.pop());
+					}
+					if( opstack[opstack.length-1] === '(' ){ opstack.pop(); }
+					break;
+			}
+		
+		}
+		while( opstack.length > 0 ){ outq.push(opstack.pop()); }
+		colrule = outq;
+	}
+	
+	function EvalColorRule(N,A,S,U){
+		let inq = Array.from(colrule);
+		let stack = [];
+		while(inq.length > 0){
+			let token = inq.shift();
+			if(!isNaN(token)){ stack.push(token); }
+			else if(!isNaN(parseInt(token))){ stack.push(parseInt(token)); }
+			else{
+				switch(token){
+					case '+': case '-': case '*': case '/': case '^': case '%':
+						let operand1 = stack.pop();
+						let operand2 = stack.pop();
+						switch(token){
+							case '+': stack.push(parseInt(operand1) + parseInt(operand2)); break;
+							case '-': stack.push(parseInt(operand1) - parseInt(operand2)); break;
+							case '*': stack.push(parseInt(operand1) * parseInt(operand2)); break;
+							case '/': stack.push(parseInt(operand1) / parseInt(operand2)); break;
+							case '%': stack.push(parseInt(operand1) % parseInt(operand2)); break;
+							case '^': stack.push(parseInt(operand1) ** parseInt(operand2)); break;
+						}
+						<!-- console.log(operand1 + token + operand2); -->
+						break;
+					case 'S': stack.push(S); break;
+					case 'N': stack.push(N); break;
+					case 'A': stack.push(A); break;
+					case 'U': stack.push(U); break;
+				}
+			}
+		}
+		return Math.trunc(stack.pop());
 	}
 	
 	function setPaintStates(){
