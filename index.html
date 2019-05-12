@@ -211,11 +211,11 @@
 							<td>L/RMB+Drag</td>
 							<td>Paint cells</td>
 						</tr><tr>
+							<td>Shift+L/RMB</td>
+							<td>Color pick</td>
+						</tr><tr>
 							<td>Ctrl+L/RMB</td>
 							<td>Flood Fill</td>
-						</tr><tr>
-							<td>Alt+L/RMB</td>
-							<td>Color pick</td>
 						</tr><tr>
 							<td>z</td>
 							<td>Undo</td>
@@ -605,7 +605,7 @@
 		let j = Math.floor( ( ev.offsetY - panY ) / zoom / celh );
 		let keycode = ( ev.keyCode ? ev.keyCode : ev.which ); //1: left; 3: right
 		if(keycode == 1 || keycode == 3){
-			if(!ev.altKey && !ev.ctrlKey){
+			if(!ev.shiftKey && !ev.ctrlKey){
 				let paintState = (keycode == 1 ? paintLeft : paintRight);
 				let newState = (cells[i][j] !== paintState ? paintState : 0);
 				setCell(i,j,newState);
@@ -1070,11 +1070,11 @@
 							<!-- st = Math.round(statesum / statecounts.length); -->
 							
 							//if 0 neighbors
-							if(!st){
-								if(wasalive){ st = cells[i][j]; }
-								else{ st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; } //pseudorandom but fixed
+							<!-- if(!st){ -->
+							if(neighbors === 0){
+								st = 1 + ( (N*j+i)**numLiveStates )%numLiveStates; //pseudorandom but fixed
 							}
-							cells[i][j] = st; //max value
+							cells[i][j] = st;
 						}
 					}else{
 						cells[i][j] = 0;
