@@ -288,11 +288,13 @@
 						<div class='tab' id='optionsTab'>
 							<h4>More Rules</h4>
 							<h5>Color Rule</h5>
-							<textarea class='field' name='cruleIO' id='cruleIO' cols='17' rows='1' placeholder='A+U'>A+U</textarea>
-							<div class='row'>
-								<button class='button column' onclick='setColorRule();'>Apply</button>
-								<button class='button column' onclick='crulebox.value = "A+U"; setColorRule();'>Default</button>
-								<button class='button column' onclick='alert("An expression for determining the state of a newly born cell when there is no majority state among its neighbors. Usable values:\nS - sum of all neighbor states\nN - number of live neighbors\nA - average of all neighbor states (S/N)\nU - number of *unique* live neighbor states\nInt or float literals\nUsable operators: + - * / ^ % ( )")'>Help</button>
+							<div class='col'>
+								<textarea class='field' name='cruleIO' id='cruleIO' cols='17' rows='1' placeholder='A+U'>A+U</textarea>
+								<div class='row'>
+									<button class='button column' onclick='setColorRule();'>Apply</button>
+									<button class='button column' onclick='crulebox.value = "A+U"; setColorRule();'>Default</button>
+									<button class='button column' onclick='alert("An expression for determining the state of a newly born cell when there is no majority state among its neighbors. Usable values:\nS - sum of all neighbor states\nN - number of live neighbors\nA - average of all neighbor states (S/N)\nU - number of *unique* live neighbor states\nInt or float literals\nUsable operators: + - * / ^ % ( )")'>Help</button>
+								</div>
 							</div>
 						</div>
 						<div class='tab' id='aboutTab' style='font-size:75%; display:block;'>
@@ -910,6 +912,17 @@
 				}else{
 					<!-- context.fillStyle=getBackgroundColor(i,j); -->
 					<!-- context.fillRect(i*celw,j*celh,celw,celh); -->
+				}
+			}
+		}
+		if(zoom === 10){
+			context.font = celh*0.75+"px Courier";
+			context.fillStyle='#000000';
+			for(let i=0; i < N; i++){ 
+				for(let j=0; j < M; j++){
+					let st = cells[i][j];
+					let str = ''+st; if(st < 10){ str = ' '+str; }
+					context.fillText(str, i*celw+celw*0.05,j*celh+celh*0.75);
 				}
 			}
 		}
