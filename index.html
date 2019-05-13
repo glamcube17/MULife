@@ -175,6 +175,14 @@
 							&nbsp;Sync
 						</div>
 						
+						<!-- <div class='row'> -->
+							<!-- <label class='switch'> -->
+								<!-- <input type='checkbox' class='checkbox' id='statenumCheckbox' onclick='showCellStateNumbers = statenumcheckbox.checked;'/> -->
+								<!-- <span class='slider round'></span> -->
+							<!-- </label> -->
+							<!-- &nbsp;Show states -->
+						<!-- </div> -->
+						
 						<div id='edgestatediv' style='display:none'>
 							<h5>Edge State</h5>
 							<textarea class='field' name='edgeIO' id='edgeIO' cols='17' rows='1' placeholder='0'>0</textarea>
@@ -374,6 +382,7 @@
 	var wrapcheckbox= document.getElementById("wrapCheckbox");
 	var wrapxcheckbox= document.getElementById("wrapXCheckbox");
 	var wrapycheckbox= document.getElementById("wrapYCheckbox");
+	var statenumcheckbox= document.getElementById("statenumCheckbox");
 	var showabout = true;
 	var importexportdiv = document.getElementById("importexportdiv");
 	var showimportexport = false;
@@ -411,6 +420,8 @@
 	var autoFetchRate = 5000; //5 s
 	
 	var colormode = true; //@todo obsolete
+	
+	var showCellStateNumbers = false;
 	
 	
 	var numLiveStates = 35; //max to generate when randomizing and such
@@ -915,7 +926,8 @@
 				}
 			}
 		}
-		if(zoom === 10){
+		<!-- if(zoom === 10 || showCellStateNumbers && zoom > 5){ -->
+		if(zoom > 5){
 			context.font = celh*0.75+"px Courier";
 			context.fillStyle='#000000';
 			for(let i=0; i < N; i++){ 
